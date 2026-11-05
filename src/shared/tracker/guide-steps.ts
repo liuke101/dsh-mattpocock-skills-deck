@@ -74,7 +74,7 @@ type ChainStepRef = { id: string; status: string }
 /**
  * 首开引导链的步骤清单（顺序即维护者 2026-09-19 定的那一条）。
  * 每一步的字段见 #662「定版一」：id / checks / backends / ready / banner / missing / blocksSetup。
- * 通用步骤三个后端都写；GitHub 专属的只写 ['github']（GitLab 与本地 Markdown 本轮不插仓库那一段）。
+ * 通用步骤四个后端都写；各后端专属的那三段只写自己的 id。
  */
 export const GUIDE_STEPS: ReadonlyArray<GuideStep> = Object.freeze([
   {
@@ -82,7 +82,7 @@ export const GUIDE_STEPS: ReadonlyArray<GuideStep> = Object.freeze([
     // 「尚未初始化／技能缺失」黄条再跳回蓝条，所以这一步读本地门控状态，不读链快照。
     id: 'selection:backendSelected',
     checks: ['selection:backendSelected'],
-    backends: ['github', 'markdown', 'gitlab'],
+    backends: ['github', 'markdown', 'gitlab', 'forgejo'],
     ready: STEP_READY.GATE,
     banner: BANNER.gate,
     missing: MISSING.pickBackend,
@@ -153,12 +153,42 @@ export const GUIDE_STEPS: ReadonlyArray<GuideStep> = Object.freeze([
     blocksSetup: true,
   },
   {
+    // Forgejo 第 1 步：装 fj（forgejo-cli）。文案复用通用安装横幅。
+    id: 'fj:installed',
+    checks: ['fj:installed'],
+    backends: ['forgejo'],
+    ready: STEP_READY.CHAIN,
+    banner: BANNER.ghCli,
+    missing: MISSING.installCli,
+    blocksSetup: false,
+  },
+  {
+    // Forgejo 第 2 步：登录实例（fj auth login）。文本按当前后端解析。
+    id: 'fj:authed',
+    checks: ['fj:authed'],
+    backends: ['forgejo'],
+    ready: STEP_READY.CHAIN,
+    banner: BANNER.ghAuth,
+    missing: MISSING.cliLogin,
+    blocksSetup: false,
+  },
+  {
+    // Forgejo 第 3 步：工作区远端指向一台已登录的 Forgejo 实例。
+    id: 'fj:repoAccess',
+    checks: ['fj:repoAccess'],
+    backends: ['forgejo'],
+    ready: STEP_READY.CHAIN,
+    banner: BANNER.repo,
+    missing: MISSING.repoRemoteFix,
+    blocksSetup: true,
+  },
+  {
     // 第 7 步：工作区已初始化。2026-11-03 起判据回到初始化产物 docs/agents/issue-tracker.md
     //   （#1806 加的身份记录 workspace-root.yaml 已按维护者定版删除；工作区根只认
     //   docs/agents/workspace.yaml，往上找，见 docs/adr/20261103-workspace-root-upward-search.md）。
     id: 'tracker:initialized',
     checks: ['tracker:initialized'],
-    backends: ['github', 'markdown', 'gitlab'],
+    backends: ['github', 'markdown', 'gitlab', 'forgejo'],
     ready: STEP_READY.CHAIN,
     banner: BANNER.setup,
     missing: MISSING.setupRun,
@@ -168,7 +198,7 @@ export const GUIDE_STEPS: ReadonlyArray<GuideStep> = Object.freeze([
     // 第 9 步：技能套件的三个技能，一条横幅管三项（取三项里最差的那一项，与今天渲染一致）。
     id: 'skill:wayfinder',
     checks: ['skill:wayfinder', 'skill:setup-matt-pocock-skills', 'skill:ask-matt'],
-    backends: ['github', 'markdown', 'gitlab'],
+    backends: ['github', 'markdown', 'gitlab', 'forgejo'],
     ready: STEP_READY.CHAIN,
     banner: BANNER.skills,
     missing: MISSING.installSkills,
@@ -179,7 +209,7 @@ export const GUIDE_STEPS: ReadonlyArray<GuideStep> = Object.freeze([
 /**
  * 按后端过滤出适用的步骤，顺序不变。
  * 后端还没选定（空串或未知 id）时返回空数组而不是抛错：调用处在这种时候仍会照常渲染，只是没有适用步骤。
- * @param {string|null} backendId 'github' | 'markdown' | 'gitlab'（为空或未知则返回空数组）
+ * @param {string|null} backendId 'github' | 'markdown' | 'gitlab' | 'forgejo'（为空或未知则返回空数组）
  * @returns {ReadonlyArray<Object>}
  */
 export function guideStepsFor(backendId: string | null | undefined): GuideStep[] {

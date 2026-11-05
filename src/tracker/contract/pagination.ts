@@ -1,9 +1,9 @@
 /**
- * src/tracker/contract/pagination.ts —— 三个后端房间（GitHub、GitLab、本地 Markdown）共用的分页与额度数字表。
+ * src/tracker/contract/pagination.ts —— 四个后端房间（GitHub、GitLab、Forgejo、本地 Markdown）共用的分页与额度数字表。
  *
  * 为什么要有这一份：
- *   这三个数字族原先在各房各写一份，同一个含义散在十几个文件里 —— 列出给界面的分页契约（缺省 50、上限 200）
- *   在 GitHub、GitLab、Markdown 三房各有一份；子票每页 100 张、一张地图最多 1000 张在 GitHub 与 GitLab
+ *   这些数字族原先在各房各写一份，同一个含义散在十几个文件里 —— 列出给界面的分页契约（缺省 50、上限 200）
+ *   在四个房间各有一份；子票每页 100 张、一张地图最多 1000 张在 GitHub 与 GitLab
  *   两房各有一份；改色并发 4 也在两房各有一份。同一个数在几处各写一遍，改一处忘一处时没有任何东西会红。
  *   收进这里以后，这些数字只有一处真源，谁要用就从这里取。
  *
@@ -85,5 +85,20 @@ export const PAGINATION = {
     // 本地 Markdown 房只有分页契约这一组数字：缺省 50、上限 200，与另外两房同一口径。
     limitDefault: 50,
     limitMax: 200,
+  },
+  forgejo: {
+    // 分页契约：与另外三房同一套（缺省 50、上限 200）。
+    limitDefault: 50,
+    limitMax: 200,
+    // 整仓列表最多翻几页：按实例的搜索页大小（实测 25 行）算，60 页约 1500 张票，撞上限如实挂 truncated。
+    listMaxPages: 60,
+    // 建票后按幂等锚回查：最多翻 3 页搜索、逐张读 50 张候选正文；再多就说明锚不唯一，宁可落空也不全仓扫。
+    anchorLookupMaxPages: 3,
+    anchorLookupMaxCandidates: 50,
+    // 子票发现：标记文本搜索最多翻 5 页、读 200 张候选票面；撞上限记 capped，不装「全了」。
+    subIssuesMaxPages: 5,
+    subIssuesMaxCandidates: 200,
+    // 标签成员表：每个标签单独搜一次，最多翻 20 页；标签多的仓库到这里就够用。
+    labelMembershipMaxPages: 20,
   },
 } as const

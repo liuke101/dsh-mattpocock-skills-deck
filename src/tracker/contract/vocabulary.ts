@@ -13,7 +13,7 @@
 /** 后端内置 id（registry 注册的一等后端；非字段类型）。 */
 /**
  * @typedef {string} BackendId 后端 id（开放 string；仓库内唯一）。
- * 一等内置 `'github' | 'markdown' | 'gitlab'`（由 registry 注册）；
+ * 一等内置 `'github' | 'markdown' | 'gitlab' | 'forgejo'`（由 registry 注册）；
  * `'other'` 保留串**已弃用**——不再作为一等后端 id，也不在 registry 注册；
  * 表达「无后端」只走 `Selection.backendId: null`（此时不产出 RepositoryRef）。
  */
@@ -21,6 +21,7 @@ export const BACKEND_KIND = Object.freeze({
   GITHUB: 'github',
   MARKDOWN: 'markdown',
   GITLAB: 'gitlab',
+  FORGEJO: 'forgejo',
 })
 
 /** 归一化后的票状态（只两态：open / closed）。本地 markdown 的 Status 在此映射（归 #115）。 */

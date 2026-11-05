@@ -105,6 +105,13 @@ zh:
 
     本次已选后端：GitLab — 请按 GitLab 模板生成 docs/agents/issue-tracker.md
   setup.gitlab.labelReqs: ，并确保仓库中技能所需标签齐全（triage 五角色 + wayfinder 标签 wayfinder:map / research / prototype / grilling / task），不要只建少数几个
+  setup.forgejo.trackerLine: 本仓库为 Forgejo → 提议 Forgejo Issues
+  setup.forgejo.trackerChoice: Forgejo Issues
+  setup.forgejo.backendNote: |-
+
+
+    本次已选后端：Forgejo — 请参照 GitHub 那份模板的结构生成 docs/agents/issue-tracker.md，但其中的命令一律换成 fj（Forgejo 命令行）；建票、改票、评论、指派都经 deck 工具执行，不要教人去网页上手工操作。
+  setup.forgejo.labelReqs: ，并确保仓库中技能所需标签齐全（triage 五角色 + wayfinder 标签 wayfinder:map / research / prototype / grilling / task），不要只建少数几个
   setup.default.trackerLine: 本仓库为 GitHub → 提议 GitHub Issues
   setup.default.trackerChoice: GitHub Issues
   setup.default.backendNote: |-
@@ -474,6 +481,13 @@ en:
 
     Selected backend: GitLab — please generate docs/agents/issue-tracker.md from the GitLab template.
   setup.gitlab.labelReqs: ", and ensure the repo has the complete label set the skills need (the five triage-role labels + the wayfinder labels wayfinder:map / research / prototype / grilling / task) — not just a few"
+  setup.forgejo.trackerLine: this repo is on Forgejo → propose Forgejo Issues
+  setup.forgejo.trackerChoice: Forgejo Issues
+  setup.forgejo.backendNote: |-
+
+
+    Selected backend: Forgejo — please generate docs/agents/issue-tracker.md following the structure of the GitHub template, but with every command replaced by fj (the Forgejo command-line tool). Creating, updating, commenting on, and assigning tickets still run through the deck tools; do not tell people to do these by hand in the web UI.
+  setup.forgejo.labelReqs: ", and ensure the repo has the complete label set the skills need (the five triage-role labels + the wayfinder labels wayfinder:map / research / prototype / grilling / task) — not just a few"
   setup.default.trackerLine: this repo is on GitHub → propose GitHub Issues
   setup.default.trackerChoice: GitHub Issues
   setup.default.backendNote: |-

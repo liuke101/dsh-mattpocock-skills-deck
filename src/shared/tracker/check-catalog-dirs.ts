@@ -192,6 +192,39 @@ export const GITLAB_CATALOG: readonly CatalogItem[] = Object.freeze([
   },
 ])
 
+/** Forgejo 后端检查目录（仅 forgejo 适用）。
+ *
+ * 三项对应 Forgejo 房 preflight 的三道门禁：工具在不在（fj version）→ 登录没有（fj auth list）
+ * → 仓库读不读得到（fj repo view）。判据本体在 src/tracker/rooms/forgejo/preflight.ts，
+ * 这里只登记检查项的名字与稳定 id，宿主按 id 找谓词。
+ */
+export const FORGEJO_CATALOG: readonly CatalogItem[] = Object.freeze([
+  {
+    id: 'fj:installed',
+    label: 'Forgejo CLI (fj) 已安装',
+    scope: 'backend',
+    backends: ['forgejo'],
+    check: { kind: 'primitive', primitive: PRIMITIVE_KIND.COMMAND_EXISTS, command: 'fj' },
+    origin: 'src/tracker/rooms/forgejo/preflight.ts:1',
+  },
+  {
+    id: 'fj:authed',
+    label: 'fj 已登录',
+    scope: 'backend',
+    backends: ['forgejo'],
+    check: { kind: 'preflight', id: 'fjAuth' },
+    origin: 'src/tracker/rooms/forgejo/preflight.ts:2',
+  },
+  {
+    id: 'fj:repoAccess',
+    label: 'Forgejo 仓库可达',
+    scope: 'backend',
+    backends: ['forgejo'],
+    check: { kind: 'backend', id: 'repoAccess', backendId: 'forgejo' },
+    origin: 'src/tracker/rooms/forgejo/preflight.ts:3',
+  },
+])
+
 /** Markdown 后端检查目录（仅 markdown 适用）。
  *
  * #1513 起固定三项、顺序固定（workspace → scratchWritable → containersReadable）：
@@ -236,7 +269,7 @@ export const MARKDOWN_CATALOG: readonly CatalogItem[] = Object.freeze([
 
 // 冻结目录项本身（不只是数组）：GitHub 房的模块检查表现在直接引用这些对象、不再各持一份副本；
 // 元素如果可变，谁都能通过模块表改掉目录里的字，唯一真源就被绕过了。
-for (const list of [GENERIC_CATALOG, GITHUB_CATALOG, GITLAB_CATALOG, MARKDOWN_CATALOG]) {
+for (const list of [GENERIC_CATALOG, GITHUB_CATALOG, GITLAB_CATALOG, MARKDOWN_CATALOG, FORGEJO_CATALOG]) {
   for (const item of list) Object.freeze(item)
 }
 
@@ -246,6 +279,7 @@ export const ALL_CATALOGS = Object.freeze({
   github: GITHUB_CATALOG,
   gitlab: GITLAB_CATALOG,
   markdown: MARKDOWN_CATALOG,
+  forgejo: FORGEJO_CATALOG,
 })
 
 /**
@@ -258,7 +292,7 @@ export const ALL_CATALOGS = Object.freeze({
  */
 export function scopeOf(checkId: string): 'generic' | 'backend' | null {
   if (GENERIC_CATALOG.some(c => c.id === checkId)) return 'generic'
-  if (GITHUB_CATALOG.some(c => c.id === checkId) || GITLAB_CATALOG.some(c => c.id === checkId) || MARKDOWN_CATALOG.some(c => c.id === checkId)) return 'backend'
+  if (GITHUB_CATALOG.some(c => c.id === checkId) || GITLAB_CATALOG.some(c => c.id === checkId) || MARKDOWN_CATALOG.some(c => c.id === checkId) || FORGEJO_CATALOG.some(c => c.id === checkId)) return 'backend'
   return null
 }
 
@@ -267,14 +301,15 @@ export function scopeOf(checkId: string): 'generic' | 'backend' | null {
  *
  * 约定：未知后端只给通用目录，不抛错也不补后端目录；反例是抛错，后端尚未选定时调用方会直接中断整条链。
  *
- * @param {'github'|'markdown'|'gitlab'|null} backendId
+ * @param {'github'|'markdown'|'gitlab'|'forgejo'|null} backendId
  * @returns {CatalogItem[]}
  */
-export function catalogFor(backendId: 'github' | 'markdown' | 'gitlab' | null | undefined): CatalogItem[] {
+export function catalogFor(backendId: 'github' | 'markdown' | 'gitlab' | 'forgejo' | null | undefined): CatalogItem[] {
   const base = [...GENERIC_CATALOG]
   if (backendId === 'github') base.push(...GITHUB_CATALOG)
   else if (backendId === 'gitlab') base.push(...GITLAB_CATALOG)
   else if (backendId === 'markdown') base.push(...MARKDOWN_CATALOG)
+  else if (backendId === 'forgejo') base.push(...FORGEJO_CATALOG)
   return base
 }
 
@@ -284,10 +319,10 @@ export function catalogFor(backendId: 'github' | 'markdown' | 'gitlab' | null | 
  * 约定：先按 catalogFor 取「通用 + 该后端」，再只留 scope==='backend'；未知后端得到空数组，不抛错。
  * 反例是各调用方各写一遍 `scope === 'backend'` 过滤——今天写法一样，明天就可能有一处漏改。
  *
- * @param {'github'|'markdown'|'gitlab'|null|undefined} backendId
+ * @param {'github'|'markdown'|'gitlab'|'forgejo'|null|undefined} backendId
  * @returns {CatalogItem[]}
  */
-export function backendItemsOf(backendId: 'github' | 'markdown' | 'gitlab' | null | undefined): CatalogItem[] {
+export function backendItemsOf(backendId: 'github' | 'markdown' | 'gitlab' | 'forgejo' | null | undefined): CatalogItem[] {
   return catalogFor(backendId).filter((item) => item.scope === 'backend')
 }
 

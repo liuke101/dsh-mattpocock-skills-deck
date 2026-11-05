@@ -91,6 +91,12 @@ const KEYS: Array<[string, string, string]> = [
   ['gitlabRepoGitMs', 'GITLAB_REPO_GIT_TIMEOUT_MS', 'timeouts'],
   ['gitlabFallbackMs', 'GITLAB_FALLBACK_TIMEOUT_MS', 'timeouts'],
   ['gitlabCreateProjectMs', 'GITLAB_CREATE_PROJECT_TIMEOUT_MS', 'timeouts'],
+  ['forgejoReadMs', 'FORGEJO_READ_TIMEOUT_MS', 'timeouts'],
+  ['forgejoSlowReadMs', 'FORGEJO_SLOW_READ_TIMEOUT_MS', 'timeouts'],
+  ['forgejoProbeMs', 'FORGEJO_PROBE_TIMEOUT_MS', 'timeouts'],
+  ['forgejoRepoGitMs', 'FORGEJO_REPO_GIT_TIMEOUT_MS', 'timeouts'],
+  ['forgejoFallbackMs', 'FORGEJO_FALLBACK_TIMEOUT_MS', 'timeouts'],
+  ['forgejoCreateMs', 'FORGEJO_CREATE_TIMEOUT_MS', 'timeouts'],
   // —— 宿主直调的 git 命令与凭据助手（2026-10-16 全量收拢补）——
   ['vcRunTimeoutMs', 'VC_RUN_TIMEOUT_MS', 'timeouts'],
   ['vcCheckCallBudgetMs', 'VC_CHECK_CALL_BUDGET_MS', 'timeouts'],

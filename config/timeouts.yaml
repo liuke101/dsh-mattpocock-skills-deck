@@ -77,6 +77,19 @@ timeouts:
   # GitLab 房建仓那一步的超时：60 秒。建仓含远端建仓库与本地初始化两段。
   gitlabCreateProjectMs: 60000
 
+  # Forgejo 房常规读超时：8 秒。单票视图与依赖清单这类一条命令就能完成的读走这一档。
+  forgejoReadMs: 8000
+  # Forgejo 房慢读超时：12 秒。搜索结果翻页与标签清单走这一档（慢网下单页经常越过 8 秒）。
+  forgejoSlowReadMs: 12000
+  # Forgejo 房探活超时：15 秒。fj version、fj auth list、fj repo view 三关与另外两房对齐。
+  forgejoProbeMs: 15000
+  # Forgejo 房内 git 直调超时：15 秒（与另外两房的 git 直调同一档，冷启动与慢网同理）。
+  forgejoRepoGitMs: 15000
+  # Forgejo 房 git 回退链超时：5 秒（兜底只读，三档里最短）。
+  forgejoFallbackMs: 5000
+  # Forgejo 房建票与写评论那一步的超时：60 秒（写操作要等远端落盘，比读宽）。
+  forgejoCreateMs: 60000
+
   # —— 宿主直调的 git 命令与凭据助手（2026-10-16 全量收拢补）——
   # 单条 git 命令的默认超时：20 秒。接线显式给了超时就按接线那个（versionControl.js 的 TIMEOUT_MS）。
   vcRunTimeoutMs: 20000

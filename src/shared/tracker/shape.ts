@@ -17,7 +17,7 @@ import { STATE, ISSUE_TYPE } from '../../tracker/contract/vocabulary.js'
 
 /**
  * 后端 id（开放 string；仓库内唯一）。
- * 一等内置 'github' | 'markdown' | 'gitlab'；'other' 保留串已弃用。
+ * 一等内置 'github' | 'markdown' | 'gitlab' | 'forgejo'；'other' 保留串已弃用。
  * 表达「无后端」只走 Selection.backendId: null（此时不产出 RepositoryRef）。
  * @typedef {string} BackendId
  */

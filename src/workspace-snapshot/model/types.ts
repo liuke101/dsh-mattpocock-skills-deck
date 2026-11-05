@@ -6,8 +6,8 @@
 //
 // 这里不 import 任何运行时模块：model 是所有其他层的地基，反向依赖会让合并规则被 SQLite 绑住。
 
-/** 后端身份。GitHub/GitLab 的一批票 effort_id 写空串；本地 Markdown 用工作单元目录名。 */
-export type SnapshotBackend = 'github' | 'gitlab' | 'markdown'
+/** 后端身份。单工作单元后端（GitHub/GitLab/Forgejo）的一批票 effort_id 写空串；本地 Markdown 用工作单元目录名。 */
+export type SnapshotBackend = 'github' | 'gitlab' | 'markdown' | 'forgejo'
 
 /** 一组字段的知识状态。没有 issue_group 行才是「从没取过」，用 null 表示。 */
 export type GroupCompleteness = 'complete' | 'truncated' | 'unknown'
