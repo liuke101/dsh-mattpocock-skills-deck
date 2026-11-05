@@ -82,7 +82,8 @@ export async function addComment(
   if (!id) return fail(ERROR_KIND.PARSE as ErrorKind, 'comment: 票号是空的', '')
   const text = typeof body === 'string' ? body : ''
   if (!text.trim()) return fail(ERROR_KIND.PARSE as ErrorKind, 'comment: 评论正文是空的', '')
-  const result = await fjClient(ctx).run(['issue', 'comment', id, '--body', text], {
+  // `fj issue comment` 的正文是位置参数，没有 `--body` 这个开关（`--body-file` 才行），传错会被当场拒绝。
+  const result = await fjClient(ctx).run(['issue', 'comment', id, text], {
     ...repoOpts(target.repo),
     cwd: ctx?.cwd,
     timeout: FORGEJO_CREATE_TIMEOUT_MS,
