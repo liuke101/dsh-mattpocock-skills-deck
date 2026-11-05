@@ -1,5 +1,5 @@
 /**
- * src/tracker/rooms/forgejo/writes.ts —— 票面上的四种写：评论、标签、指派人、归属、阻塞。
+ * src/tracker/rooms/forgejo/writes.ts —— 票面上的五种写：评论、标签、指派人、归属、阻塞。
  *
  * 每一条都先把「现在是什么」读回来再算差量，只发真正需要的命令。这不是为了省命令，
  * 是因为 `fj` 的编辑命令全是增量式（`--add` / `--rm` / `assign` / `unassign`），

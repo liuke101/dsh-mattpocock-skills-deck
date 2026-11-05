@@ -14,11 +14,11 @@
 | list | 做了但没做到位 | `issues.ts` + `search.ts`，`fj issue search` 的行只有编号、标题、作者；正文、指派人、时间读不到，标签靠逐标签搜索另补 |
 | get | 做了但没做到位 | `issues.ts` + `text.ts`，详情读得到标题、状态、作者、标签、正文、评论、指派人、原生依赖；`fj` 不打印创建时间、更新时间和关闭原因 |
 | getDependencies | 明确提供功能 | `graph.ts`，原生 `depend list` 与 `block list` 两向都读，缺一边会标明 |
-| create | 做了但没做到位 | `issues.ts`，建票后补写标签与指派人；幂等锚回查依赖全文搜索，实例关闭搜索索引时可能落空 |
-| close | 明确提供功能 | `issues.ts`，`fj issue close` 后读回票面 |
+| create | 做了但没做到位 | `write-issues.ts`，建票后补写标签与指派人；幂等锚回查依赖全文搜索，实例关闭搜索索引时可能落空 |
+| close | 明确提供功能 | `write-issues.ts`，`fj issue close` 后读回票面 |
 | reopen | 当前不支持、未来会开发 | `fj` 0.7.0 没有 reopen 子命令；平台本身支持重开，等 CLI 补命令后接上（承接票 `#1875`） |
-| comment | 明确提供功能 | `writes.ts`，`fj issue comment <票号> --body`，作者取 `fj whoami` |
-| update | 做了但没做到位 | `issues.ts`，标题、正文、里程碑是三条独立命令，不是原子写；中途失败时前面的字段已经落盘 |
+| comment | 明确提供功能 | `writes.ts`，`fj issue comment <票号> <正文>`（正文是位置参数，没有 `--body` 开关），作者取 `fj whoami` |
+| update | 做了但没做到位 | `write-issues.ts`，标题、正文、里程碑是三条独立命令，不是原子写；中途失败时前面的字段已经落盘 |
 | setLabels | 做了但没做到位 | `writes.ts`，加标签正常；去标签在 Forgejo 17.0.1 + fj 0.7.0 上会重置连接；`expectedUpdatedAt` 无法比对，因为没有可读的更新时间 |
 | setAssignees | 明确提供功能 | `writes.ts`，`issue assign` / `issue unassign` 按最终集合增删 |
 | setParent | 明确提供功能 | `writes.ts`，父子边落在正文文件头的隐藏标记 `<!-- DSH-PARENT: <地图> -->`（`fj` 没有原生的父级命令）；写后读回核对，旧 `Part of #n` 可见行过渡期回退认 |
