@@ -70,6 +70,17 @@ ttl:
   # 地图票列表缓存的有效期：60 秒（客户端）。命中即用，miss 才走远端。
   mapTicketsTtlMs: 60000
 
+  # —— Forgejo 房（#1875）：四个进程内缓存各自多久重问一次 ——
+  # 已登录实例清单的有效期：30 秒。判定层一次扫描会对同一个工作区问好几次，每次都起 `fj` 太重；
+  # 30 秒也是用户执行 `fj auth login` 之后，最多等这么久就会被认出来的上限。
+  forgejoAuthHostsTtlMs: 30000
+  # 当前登录名的有效期：60 秒。评论回执要用作者名，短时复用免得每发一条评论都问一次 `fj whoami`。
+  forgejoLoginTtlMs: 60000
+  # 标签清单的有效期：60 秒。列票时给标签补颜色，短时复用同一份清单。
+  forgejoLabelListTtlMs: 60000
+  # 标签成员表的有效期：120 秒。这张表要为每个标签各搜一次，比标签清单贵一倍，所以缓存久一倍。
+  forgejoLabelMembershipTtlMs: 120000
+
   # —— 跟踪器同步的寿命（src/shared/tracker/sync.js，宿主与界面吃同一份）——
   # 两次窗口重叠的容差：90 秒。窗口边界对齐用，免得同一段时间被算两遍或漏掉。
   syncOverlapSkewMs: 90000

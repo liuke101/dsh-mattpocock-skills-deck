@@ -126,6 +126,11 @@ const REFERENCES: RefRow[] = [
   { file: 'src/host/skillProbeCache.ts', access: 'SKILL_PROBE_CACHE_MS', gen: 'SKILL_PROBE_CACHE_MS', key: 'skillProbeCacheMs' },
   // #1528：一趟环境检查里两项判据共用同一份 `.scratch` 根目录列举结果，重合窗口住中央 YAML。
   { file: 'src/tracker/rooms/markdown/scratch-listing.ts', access: 'SCRATCH_ROOT_LISTING_TTL_MS', gen: 'SCRATCH_ROOT_LISTING_TTL_MS', key: 'scratchRootListingTtlMs' },
+  // —— Forgejo 房四个进程内缓存的寿命（#1875）：都住 config/ttl.yaml 的 forgejo* 键 ——
+  { file: 'src/tracker/rooms/forgejo/repo.ts', access: 'FORGEJO_AUTH_HOSTS_TTL_MS', gen: 'FORGEJO_AUTH_HOSTS_TTL_MS', key: 'forgejoAuthHostsTtlMs' },
+  { file: 'src/tracker/rooms/forgejo/identity-ops.ts', access: 'FORGEJO_LOGIN_TTL_MS', gen: 'FORGEJO_LOGIN_TTL_MS', key: 'forgejoLoginTtlMs' },
+  { file: 'src/tracker/rooms/forgejo/labels.ts', access: 'FORGEJO_LABEL_LIST_TTL_MS', gen: 'FORGEJO_LABEL_LIST_TTL_MS', key: 'forgejoLabelListTtlMs' },
+  { file: 'src/tracker/rooms/forgejo/labels.ts', access: 'FORGEJO_LABEL_MEMBERSHIP_TTL_MS', gen: 'FORGEJO_LABEL_MEMBERSHIP_TTL_MS', key: 'forgejoLabelMembershipTtlMs' },
   { file: 'src/refresh/rooms/host/chain-coalescing.ts', access: 'CHAIN_RIDE_MAX_AGE_MS', gen: 'CHAIN_RIDE_MAX_AGE_MS', key: 'chainRideMaxAgeMs' },
   { file: 'src/refresh/rooms/host/refresh-runtime.ts', access: 'DECK_ENSURE_TIMEOUT_MS', gen: 'DECK_ENSURE_TIMEOUT_MS', key: 'deckEnsureMs' },
   { file: 'src/refresh/registry/quota-sync-bridge.ts', access: 'QUOTA_SYNC_HARD_COOLDOWN_MS', gen: 'QUOTA_SYNC_HARD_COOLDOWN_MS', key: 'quotaSyncHardCooldownMs' },
@@ -532,6 +537,7 @@ const EXEMPTS: ExemptRow[] = [
   { file: 'src/refresh/kernel/failure-backoff.ts', name: 'delay', reason: '派生变量：backoffDelayMs(state) 算出来的本次等待时长，序列本身已登记为 chainBackoffMs' },
   { file: 'src/tracker/rooms/github/transport/client.ts', name: 'timeout', reason: '透传参数：值来自上层调用参数，本文件不决定时长（出站层的档位由 outbound-tiers.ts 定，已登记）' },
   { file: 'src/tracker/rooms/gitlab/client.ts', name: 'timeout', reason: '同上，透传参数' },
+  { file: 'src/tracker/rooms/forgejo/client.ts', name: 'timeout', reason: '同上，透传参数：值来自调用方给的 FjRunOpts.timeout，缺省接 FORGEJO_READ_TIMEOUT_MS（已登记），本文件不决定时长' },
   { file: 'src/refresh/rooms/host/issue-index-scan.ts', name: 'startedMs', reason: '读钟时刻（这趟扫描什么时候开始的），不是可调参数' },
   { file: 'src/refresh/rooms/host/issue-index-scan.ts', name: 'nextWatermarkMs', reason: '算出来的下一个水位时刻，不是可调参数' },
   { file: 'src/refresh/rooms/host/issue-index-scan.ts', name: 'watermarkMs', reason: '上次扫到哪儿的时刻（状态字段），不是可调参数' },

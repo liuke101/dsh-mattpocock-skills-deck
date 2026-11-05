@@ -296,6 +296,11 @@ const KEYS: Array<[string, string, string]> = [
   ['anchorWindowMs', 'ANCHOR_WINDOW_MS', 'ttl'],
   ['idempotencyLookbackMs', 'IDEMPOTENCY_LOOKBACK_MS', 'ttl'],
   ['mapTicketsTtlMs', 'MAP_TICKETS_TTL_MS', 'ttl'],
+  // #1875：Forgejo 房四个进程内缓存的有效期（已登录实例清单、当前登录名、标签清单、标签成员表）。
+  ['forgejoAuthHostsTtlMs', 'FORGEJO_AUTH_HOSTS_TTL_MS', 'ttl'],
+  ['forgejoLoginTtlMs', 'FORGEJO_LOGIN_TTL_MS', 'ttl'],
+  ['forgejoLabelListTtlMs', 'FORGEJO_LABEL_LIST_TTL_MS', 'ttl'],
+  ['forgejoLabelMembershipTtlMs', 'FORGEJO_LABEL_MEMBERSHIP_TTL_MS', 'ttl'],
   // —— 跟踪器同步的寿命（shared/tracker/sync.js，宿主与界面吃同一份）——
   ['syncOverlapSkewMs', 'SYNC_OVERLAP_SKEW_MS', 'ttl'],
   ['syncDirtyEchoTtlMs', 'SYNC_DIRTY_ECHO_TTL_MS', 'ttl'],

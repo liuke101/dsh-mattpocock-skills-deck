@@ -31,7 +31,7 @@ const PRIMITIVE_KIND = Object.freeze({
  *
  * 第一性原理：
  *  - 通用 = 真值不随 backendId 改变（所有后端都要问，恒脱离后端可检测）；后端 = 真值随 backendId 改变（仅该后端需要，物理隔离）。
- *  - 判据形式化：若把 backendId 从 'github' 切到 'markdown' / 'gitlab'，该检查的期望结果不变 → 通用；否则 → 后端。
+ *  - 判据形式化：若把 backendId 从 'github' 切到 'markdown' / 'gitlab' / 'forgejo'，该检查的期望结果不变 → 通用；否则 → 后端。
  *  - 2026-08-27 起删 na：通用恒适用，无不适用场景；后端按物理隔离，行不存在而非标 na（本文件无 na 承载字段，见 #246）。
  *  - 本文件为目录边界的唯一真源，供编排链票（开门链 / 前置环境检测链）直接消费；后续新增检查必须先在此分类。
  *  - 目录产物进入检查链视图：视图半额外导出 GENERIC_CHECK_ITEMS / GENERIC_GATE_CHAIN / GENERIC_ENV_CHAIN 供 UI 链渲染器直接消费（#226）。

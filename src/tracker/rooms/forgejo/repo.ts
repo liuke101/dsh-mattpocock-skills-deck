@@ -24,7 +24,12 @@ import { parseIssueTracker, normalizeTrackerText } from '../../kernel/issue-trac
 import { fjClient } from './client.js'
 import { parseAuthHosts, parseRepoView, normalizeHost } from './text.js'
 import { emitReadDegraded, emitRepoTier } from './read-log.js'
-import { FORGEJO_FALLBACK_TIMEOUT_MS, FORGEJO_PROBE_TIMEOUT_MS, FORGEJO_REPO_GIT_TIMEOUT_MS } from '../../../shared/time-config/src/values.js'
+import {
+  FORGEJO_AUTH_HOSTS_TTL_MS,
+  FORGEJO_FALLBACK_TIMEOUT_MS,
+  FORGEJO_PROBE_TIMEOUT_MS,
+  FORGEJO_REPO_GIT_TIMEOUT_MS,
+} from '../../../shared/time-config/src/values.js'
 
 /** 一台实例上的一个仓库。`host` 是网页 origin（含协议与端口），`hostKey` 只用于比较。 */
 export interface ForgejoRepo {
@@ -126,7 +131,6 @@ async function readWorkspaceFile(fs: OpContext['fs'] | undefined, cwd: string, r
 
 /** 已经登录的实例地址（比较用主机键）。给 `matches` 与远端筛选共用。 */
 let authHostsCache: { at: number; hosts: string[] } = { at: 0, hosts: [] }
-const AUTH_HOSTS_TTL_MS = 30_000
 
 /**
  * 问一次 `fj auth list` 拿到这台机器上已经登录的实例。
@@ -136,7 +140,7 @@ const AUTH_HOSTS_TTL_MS = 30_000
  */
 export async function authenticatedHosts(ctx: RepoCtx): Promise<string[]> {
   const now = Date.now()
-  if (now - authHostsCache.at < AUTH_HOSTS_TTL_MS) return authHostsCache.hosts
+  if (now - authHostsCache.at < FORGEJO_AUTH_HOSTS_TTL_MS) return authHostsCache.hosts
   const result = await fjClient(ctx).run(['auth', 'list'], { timeout: FORGEJO_PROBE_TIMEOUT_MS })
   const hosts = result.code === 0 ? parseAuthHosts(result.stdout || result.stderr).map(normalizeHost).filter((host) => host !== '') : []
   authHostsCache = { at: now, hosts }

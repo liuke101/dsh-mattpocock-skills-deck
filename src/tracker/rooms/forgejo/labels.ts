@@ -28,14 +28,14 @@ import type { LabelView } from './text.js'
 import { searchAll } from './search.js'
 import { emitReadDegraded } from './read-log.js'
 import { provenanceOf } from './provenance.js'
-import { FORGEJO_SLOW_READ_TIMEOUT_MS } from '../../../shared/time-config/src/values.js'
+import {
+  FORGEJO_LABEL_LIST_TTL_MS,
+  FORGEJO_LABEL_MEMBERSHIP_TTL_MS,
+  FORGEJO_SLOW_READ_TIMEOUT_MS,
+} from '../../../shared/time-config/src/values.js'
 import { PAGINATION } from '../../contract/pagination.js'
 
 type CtxLike = Partial<OpContext> & Partial<BackendContext>
-
-/** 标签清单缓存 60 秒；成员表缓存 120 秒（它要跑更多进程）。 */
-const LABEL_LIST_TTL_MS = 60_000
-const MEMBERSHIP_TTL_MS = 120_000
 
 /** 一个标签搜一次，最多读几页；超过就按「这一拍没补全」处理，不无限翻。 */
 const MEMBERSHIP_MAX_PAGES = PAGINATION.forgejo.labelMembershipMaxPages
@@ -97,7 +97,7 @@ export async function fetchLabelsCached(
   const key = cacheKeyOf(repo)
   const now = Date.now()
   const hit = labelCache.get(key)
-  if (hit && now - hit.at < LABEL_LIST_TTL_MS) return { ok: true, labels: hit.labels, raw: '' }
+  if (hit && now - hit.at < FORGEJO_LABEL_LIST_TTL_MS) return { ok: true, labels: hit.labels, raw: '' }
   const outcome = await fetchLabels(ctx, repo)
   if (outcome.ok) labelCache.set(key, { at: now, labels: outcome.labels })
   return outcome
@@ -145,7 +145,7 @@ export async function labelMembership(
   const key = cacheKeyOf(repo)
   const now = Date.now()
   const hit = membershipCache.get(key)
-  if (hit && now - hit.at < MEMBERSHIP_TTL_MS) return hit.byKey
+  if (hit && now - hit.at < FORGEJO_LABEL_MEMBERSHIP_TTL_MS) return hit.byKey
   const labels = await fetchLabelsCached(ctx, repo)
   if (!labels.ok) return null
   if (labels.labels.length === 0) {

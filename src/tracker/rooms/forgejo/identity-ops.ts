@@ -21,13 +21,12 @@ import { resolveRepo } from './repo.js'
 import { parseWhoAmI } from './text.js'
 import { emitReadDegraded } from './read-log.js'
 import { provenanceOf } from './provenance.js'
-import { FORGEJO_PROBE_TIMEOUT_MS } from '../../../shared/time-config/src/values.js'
+import { FORGEJO_LOGIN_TTL_MS, FORGEJO_PROBE_TIMEOUT_MS } from '../../../shared/time-config/src/values.js'
 
 type CtxLike = Partial<OpContext> & Partial<BackendContext>
 
-/** 登录名缓存 60 秒；`fj auth login` 之后最多等这么久。 */
+/** 登录名缓存；`fj auth login` 之后最多等这么久。寿命住 config/ttl.yaml。 */
 let loginCache: { at: number; host: string; login: string } = { at: 0, host: '', login: '' }
-const LOGIN_TTL_MS = 60_000
 
 /**
  * 当前登录名；问不出来回空串（不抛）。
@@ -40,7 +39,7 @@ export async function currentLogin(
   host: string,
 ): Promise<string> {
   const now = Date.now()
-  if (loginCache.login && loginCache.host === host && now - loginCache.at < LOGIN_TTL_MS) return loginCache.login
+  if (loginCache.login && loginCache.host === host && now - loginCache.at < FORGEJO_LOGIN_TTL_MS) return loginCache.login
   const result = await fjClient(ctx).run(['whoami'], { host, cwd: ctx?.cwd, timeout: FORGEJO_PROBE_TIMEOUT_MS })
   if (result.code !== 0) return ''
   const parsed = parseWhoAmI(result.stdout)

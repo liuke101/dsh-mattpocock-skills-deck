@@ -40,11 +40,11 @@ export type OutboundBucket = 'read' | 'write' | 'probe'
 
 /**
  * 出站通路：冷却按「通路 + 读写档」各记一份（#1007 复核）。
- * 名额（并发上限）是三条路共用的一套，但通路是分开的三条 —— GitHub 的故障不许把去 GitLab / git 的调用
+ * 名额（并发上限）是这些路共用的一套，但通路是分开的几条 —— 一条路的故障不许把去别的路的调用
  * 一起挡掉，反之亦然。房间与宿主通道在拿名额、上报结局时把这条路名带上；缺省按 github 处理
- * （现有绝大多数出站是 gh）。
+ * （现有绝大多数出站是 gh）。Forgejo（#1875）走 `fj`，与 GitHub、GitLab、git 各算一条独立通路。
  */
-export type OutboundService = 'github' | 'gitlab' | 'git'
+export type OutboundService = 'github' | 'gitlab' | 'forgejo' | 'git'
 
 /**
  * 出站控制面（宿主实现，房间只读形状）。

@@ -24,13 +24,13 @@
 // 而本目录要守住「零运行时实现」——同目录 `vocabulary.ts` 里的 `Object.freeze` 常量
 // 就是这些联合在运行时的那一份值（同一份取值，两处写法，改一处必须改另一处）。
 // 用字面量联合的好处是编译期能查错，运行时一个字节都不多。
-// 为什么 BackendId 是开放 string 而不是 'github'|'markdown'|'gitlab'：第三方后端要能注册，
-// 写死三个就把门焊死了（'other' 这个保留串已弃用，不注册）。
+// 为什么 BackendId 是开放 string 而不是 'github'|'markdown'|'gitlab'|'forgejo'：第三方后端要能注册，
+// 写死内置集合就把门焊死了（'other' 这个保留串已弃用，不注册）。
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * 后端 id：开放字符串，仓库内唯一。
- * 一等内置是 `'github'`、`'markdown'`、`'gitlab'`；`'other'` 已弃用、不再注册。
+ * 一等内置是 `'github'`、`'markdown'`、`'gitlab'`、`'forgejo'`；`'other'` 已弃用、不再注册。
  * 表达「没有后端」只能用 `Selection.backendId: null`，**不许**造一个假 id。
  */
 export type BackendId = string
