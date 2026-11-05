@@ -29,6 +29,7 @@ import { searchPage } from './search.js'
 import { issueFromRow } from './normalize.js'
 import { provenanceOf } from './provenance.js'
 import { emitReadDegraded } from './read-log.js'
+import { classifyFjError } from './errors.js'
 import { FORGEJO_SLOW_READ_TIMEOUT_MS } from '../../../shared/time-config/src/values.js'
 import { PAGINATION } from '../../contract/pagination.js'
 
@@ -45,15 +46,24 @@ async function countState(
   state: 'open' | 'closed',
   labels: string[],
 ): Promise<{ ok: true; total: number } | { ok: false; error: TrackerError }> {
+  const startedAt = Date.now()
   const args = ['issue', 'search', '-r', repo.refId, '-s', state]
   if (labels.length > 0) args.push('-l', labels.join(','))
   const result = await fjClient(ctx).run(args, { host: repo.host, cwd: ctx?.cwd, timeout: FORGEJO_SLOW_READ_TIMEOUT_MS })
   if (result.code !== 0) {
-    return { ok: false, error: fail(ERROR_KIND.NETWORK as ErrorKind, '数票没有成功', result.stderr || result.stdout).error }
+    // 失败原因按 fj 的原文判档，并留下这一趟的降级线；全部归成「数不对」会让日志指错方向。
+    const verdict = classifyFjError(result, ctx as OpContext)
+    emitReadDegraded(ctx as OpContext, 'counts', 'counts:transport', Date.now() - startedAt)
+    return { ok: false, error: fail(verdict.kind, '数票没有成功', result.stderr || result.stdout).error }
   }
   const header = parseSearchPage(result.stdout)
   if (!header) {
+    emitReadDegraded(ctx as OpContext, 'counts', 'counts:text', Date.now() - startedAt)
     return { ok: false, error: fail(ERROR_KIND.PARSE as ErrorKind, '看不懂搜索结果的计数（头部格式变了？）', result.stdout).error }
+  }
+  if (!isFinite(header.total) || header.total < 0) {
+    emitReadDegraded(ctx as OpContext, 'counts', 'counts:stat', Date.now() - startedAt)
+    return { ok: false, error: fail(ERROR_KIND.PARSE as ErrorKind, '搜索头部给的票数不是一个有效数字', String(header.total)).error }
   }
   return { ok: true, total: header.total }
 }
@@ -90,15 +100,9 @@ export async function counts(
     } as CountsResult
   }
   const open = await countState(ctx, target.repo, 'open', labels)
-  if (!open.ok) {
-    emitReadDegraded(ctx as OpContext, 'counts', 'counts:stat', Date.now() - startedAt)
-    return open as CountsResult
-  }
+  if (!open.ok) return open as CountsResult
   const closed = await countState(ctx, target.repo, 'closed', labels)
-  if (!closed.ok) {
-    emitReadDegraded(ctx as OpContext, 'counts', 'counts:stat', Date.now() - startedAt)
-    return closed as CountsResult
-  }
+  if (!closed.ok) return closed as CountsResult
   return {
     ok: true,
     data: { open: open.total, closed: closed.total, total: open.total + closed.total },
