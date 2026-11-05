@@ -65,10 +65,11 @@ async function main() {
   assert.deepStrictEqual(idOf(guide.guideStepsFor('markdown')), ['selection:backendSelected', 'tracker:initialized', 'skill:wayfinder'], 'markdown 只拿到通用那三步（不插仓库段）')
   // #1190 起 gitlab 不再与 markdown 同形：自家三步进清单（装/登录/仓库），通用三步照旧。
   assert.deepStrictEqual(idOf(guide.guideStepsFor('gitlab')), ['selection:backendSelected', 'glab:installed', 'glab:authed', 'glab:repoAccess', 'tracker:initialized', 'skill:wayfinder'], 'gitlab 拿到自家三步 + 通用三步（gh 三步不混入）')
+  assert.deepStrictEqual(idOf(guide.guideStepsFor('forgejo')), ['selection:backendSelected', 'fj:installed', 'fj:authed', 'fj:repoAccess', 'tracker:initialized', 'skill:wayfinder'], 'forgejo 拿到自家三步 + 通用三步（gh、glab 三步都不混入）')
   assert.deepStrictEqual(guide.guideStepsFor(null), [], '后端没定时返回空数组')
   assert.deepStrictEqual(guide.guideStepsFor(''), [], '后端为空串时返回空数组')
   assert.deepStrictEqual(guide.guideStepsFor('其它'), [], '未知后端返回空数组')
-  for (const b of ['github', 'markdown', 'gitlab']) {
+  for (const b of ['github', 'markdown', 'gitlab', 'forgejo']) {
     const orig = guide.GUIDE_STEPS.filter((s) => s.backends.indexOf(b) >= 0)
     assert.deepStrictEqual(idOf(guide.guideStepsFor(b)), idOf(orig), `${b}：过滤结果就是清单里适用它的那几步，顺序不变`)
   }
@@ -114,6 +115,10 @@ async function main() {
   assert.deepStrictEqual(idOf(glOrdered), ['glab:installed', 'glab:authed', 'glab:repoAccess', 'tracker:initialized', 'skill:wayfinder', 'skill:setup-matt-pocock-skills', 'skill:ask-matt', 'env:home'], 'GitLab 清单步骤上移：自家三步与通用两步在前，其余按目录顺序在后')
   assert.strictEqual(glOrdered.length, catalog.catalogFor('gitlab').length, 'GitLab：一行不多、一行不少')
 
+  const fjOrdered = guide.orderStepsByGuide(guide.guideStepsFor('forgejo'), chainStepsOf('forgejo'))
+  assert.deepStrictEqual(idOf(fjOrdered), ['fj:installed', 'fj:authed', 'fj:repoAccess', 'tracker:initialized', 'skill:wayfinder', 'skill:setup-matt-pocock-skills', 'skill:ask-matt', 'env:home'], 'Forgejo 清单步骤上移：自家三步与通用两步在前，其余按目录顺序在后')
+  assert.strictEqual(fjOrdered.length, catalog.catalogFor('forgejo').length, 'Forgejo：一行不多、一行不少')
+
   // 后端没定时（清单为空）：原样返回，不崩
   const raw = chainStepsOf('github')
   assert.deepStrictEqual(idOf(guide.orderStepsByGuide(guide.guideStepsFor(null), raw)), idOf(raw), '后端没定时原样返回（不排也不丢）')
@@ -126,7 +131,7 @@ async function main() {
   const before = raw.map((s) => s.id).join(',')
   guide.orderStepsByGuide(guide.guideStepsFor('github'), raw)
   assert.strictEqual(raw.map((s) => s.id).join(','), before, '排序不改动入参数组')
-  ok('orderStepsByGuide：三个后端都排成定版那条链（行数不变、缺项跳过、清单里没有的项原样保留在尾部、空输入不崩、不改入参）')
+  ok('orderStepsByGuide：四个后端都排成定版那条链（行数不变、缺项跳过、清单里没有的项原样保留在尾部、空输入不崩、不改入参）')
 
   // 【已删除】原先这里读 src/host/detectChain.ts 的源码文本，断言它 import 了清单模块、调了 orderStepsByGuide /
   //   guideStepsFor、排序发生在算 currentIndex 之前、以及没有旧的直拼写法。断言对象是手写源码里的写法与先后，

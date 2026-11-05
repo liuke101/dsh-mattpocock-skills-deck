@@ -45,7 +45,7 @@ const PRIMITIVE_KIND = Object.freeze({
  * @property {string} id チェック唯一 id（与 chain CheckItem.id 对齐）
  * @property {string} label 人读标签
  * @property {'generic'|'backend'} scope 通用或后端
- * @property {string[]} backends 适用后端（generic 为 ['github','markdown','gitlab']，backend 为子集）
+ * @property {string[]} backends 适用后端（generic 为全部内置后端，backend 为子集）
  * @property {CatalogCheck} check 谓词描述（primitive/backend/preflight）
  * @property {string} origin 盘点来源（文件:行号或 inventory 类别）
  * @property {boolean} [sessionScoped] 结果是否取决于当前会话的沙箱许可（例：md:scratchWritable 的写探测）；#1483
@@ -69,7 +69,7 @@ export const GENERIC_CATALOG: readonly CatalogItem[] = Object.freeze([
     id: 'skill:wayfinder',
     label: '技能 wayfinder 已安装',
     scope: 'generic',
-    backends: ['github','markdown','gitlab'],
+    backends: ['github','markdown','gitlab','forgejo'],
     check: { kind: 'primitive', primitive: PRIMITIVE_KIND.SKILL_PROBE, skill: 'wayfinder' },
     origin: 'host/index.js:SKILL_PROBE_NAMES (inventory 类别 8)',
   },
@@ -77,7 +77,7 @@ export const GENERIC_CATALOG: readonly CatalogItem[] = Object.freeze([
     id: 'skill:setup-matt-pocock-skills',
     label: '技能 setup-matt-pocock-skills 已安装',
     scope: 'generic',
-    backends: ['github','markdown','gitlab'],
+    backends: ['github','markdown','gitlab','forgejo'],
     check: { kind: 'primitive', primitive: PRIMITIVE_KIND.SKILL_PROBE, skill: 'setup-matt-pocock-skills' },
     origin: 'host/index.js:SKILL_PROBE_NAMES',
   },
@@ -85,7 +85,7 @@ export const GENERIC_CATALOG: readonly CatalogItem[] = Object.freeze([
     id: 'skill:ask-matt',
     label: '技能 ask-matt 已安装',
     scope: 'generic',
-    backends: ['github','markdown','gitlab'],
+    backends: ['github','markdown','gitlab','forgejo'],
     check: { kind: 'primitive', primitive: PRIMITIVE_KIND.SKILL_PROBE, skill: 'ask-matt' },
     origin: 'host/index.js:SKILL_PROBE_NAMES',
   },
@@ -93,7 +93,7 @@ export const GENERIC_CATALOG: readonly CatalogItem[] = Object.freeze([
     id: 'env:home',
     label: '用户主目录可解析',
     scope: 'generic',
-    backends: ['github','markdown','gitlab'],
+    backends: ['github','markdown','gitlab','forgejo'],
     // /homeDir（2026-08-28 修复）：主目录判定只问平台层（#171：win32 不读 HOME，走 os.homedir→USERPROFILE；linux/mac 走 os.homedir）。
     //   原 ENV(HOME) 在 Windows 必然误报「HOME not set」（Windows 从不设置该环境变量）。
     //   为什么是通用检查：技能判装的单一根 ~/.agents/skills（#276/#281）由此解析，三后端共用同一用户级根，
@@ -113,7 +113,7 @@ export const GENERIC_CATALOG: readonly CatalogItem[] = Object.freeze([
     id: 'tracker:initialized',
     label: '工作区已初始化（有说明文件）',
     scope: 'generic',
-    backends: ['github','markdown','gitlab'],
+    backends: ['github','markdown','gitlab','forgejo'],
     check: { kind: 'primitive', primitive: PRIMITIVE_KIND.FILE_EXISTS, path: 'docs/agents/issue-tracker.md' },
     origin: 'host/checkTracker (inventory 类别 8)',
   },

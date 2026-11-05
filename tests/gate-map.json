@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T06:55:01.335Z",
+  "generatedAt": "2026-11-05T07:12:05.374Z",
   "generatedBy": "node scripts/gate-map.mts",
   "chainLength": 574,
   "gateCount": 574,
@@ -6712,17 +6712,19 @@
       "step": "node tests/verify-1875-forgejo-client.ts",
       "file": "tests/verify-1875-forgejo-client.ts",
       "guards": [
+        "src/tracker/kernel/outbound-tiers.ts",
         "src/tracker/rooms/forgejo/client.ts",
         "src/tracker/rooms/forgejo/repo.ts"
       ],
       "dirs": [
+        "src/tracker/kernel",
         "src/tracker/rooms/forgejo"
       ],
       "unattributed": false,
       "buildOutputOnly": false,
       "completionRecord": false,
       "expectedAssertions": 0,
-      "reason": "归属来自：静态 import 说明符 2 条"
+      "reason": "归属来自：静态 import 说明符 3 条"
     },
     {
       "step": "node tests/verify-1879-suggest-deck-gate.ts",
@@ -15151,6 +15153,7 @@
       "node tests/verify-1519-detail-comments.ts",
       "node tests/verify-1533-git-remote-claim.ts",
       "node tests/verify-1555-gitlab-claim-declaration.ts",
+      "node tests/verify-1875-forgejo-client.ts",
       "node tests/verify-544-standalone-blocked.ts",
       "node tests/verify-969-tiered-timeout.ts",
       "node tests/verify-992-readonly-labels.ts",
