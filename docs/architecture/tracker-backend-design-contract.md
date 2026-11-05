@@ -15,7 +15,7 @@
 ```
 UI（已解耦，对后端无感）
   ↕ 主缝：Tracker 抽象接口 + trackerRegistry（后端可插拔）
-Tracker 后端层（GitHub / 本地 Markdown / GitLab / 第三方）
+Tracker 后端层（GitHub / 本地 Markdown / GitLab / Forgejo / 第三方）
   ↕ 次缝：平台抽象层（OS 可插拔，deck 全域唯一 OS 真相源）
 OS 底座（darwin / win32 / linux）
 ```
@@ -38,8 +38,9 @@ OS 底座（darwin / win32 / linux）
 
 ## 4. 后端 cut 线
 
-- 一等后端：**GitHub（首发）/ 本地 Markdown（独立适配）/ GitLab（独立适配）**。
+- 一等后端：**GitHub（首发）/ 本地 Markdown（独立适配）/ GitLab（独立适配）/ Forgejo（独立适配）**。
 - 其余（Gitea / Linear / Jira / 公司自建）→ **Other 逃生舱（自由散文）**，不做全特性后端。
+- Forgejo 越过原 cut 线的原因写在 2026-11-05 的实现票 #1875 里：它是自建实例里常见的一支，且有稳定的命令行工具 `fj`（forgejo-cli）可以承载全部读写。Gitea 本身仍未列入一等后端；两者的命令行工具与接口并不通用，不能因为名字相近就把 Forgejo 的实现直接当成 Gitea 的。
 - 任意公司 Git：仅当「能迁到主流」或「提供兼容 issue 级 REST」才可适配；此条另议中间适配方案，**非关键路径**。
 
 ## 5. 本地 Markdown 格式（照抄随包 Matt 技能原文，勿自造）

@@ -17,19 +17,19 @@
 上层就要多一堆「如果这个后端就……」的分支。
 
 这份承诺写成 TypeScript 的 `interface` 之后，「有没有对上」由编译器回答。先说清写法：`implements` 是类专用的
-关键字，三个后端的实现都是**工厂交出来的对象字面量**，挂的是同一件事的另一种写法（`satisfies`），分两处：
+关键字，各后端的实现都是**工厂交出来的对象字面量**，挂的是同一件事的另一种写法（`satisfies`），分两处：
 
 - **每个操作收什么、回什么**：每个后端自己声明一份成员集合（从它的能力登记推出来），再把工厂交出来的对象
   用 `satisfies <后端>BackendShape` 挂上去，而这份形状的每一格都写成 `Tracker[该操作名]`——少一个参数、
   错一个返回类型，编译当场报错，不必等运行时才发现。
-- **模块对象**（进程刚启动、还没有工作区时注册表真正读的那份，见 `backend-module.ts`）：三个后端的模块对象
+- **模块对象**（进程刚启动、还没有工作区时注册表真正读的那份，见 `backend-module.ts`）：各后端的模块对象
   都用 `satisfies BackendModule` 挂上契约，缺一条、多一条都在编译期红（#1027，2026-10-15 落地）。
 
 ## 谁实现、谁消费
 
-- **实现方（后端）**：`src/tracker/rooms/github/`、`src/tracker/rooms/markdown/`、`src/tracker/rooms/gitlab/`。
-  三家都按同一份契约接进来。GitLab 后端原先写着「本轮不在改造范围内」，那是搬家期的说法；
-  它现在与另外两家一样是内置后端（注册表的内置清单见 `src/tracker/registry/builtins.ts`）。
+- **实现方（后端）**：`src/tracker/rooms/github/`、`src/tracker/rooms/markdown/`、`src/tracker/rooms/gitlab/`、`src/tracker/rooms/forgejo/`。
+  四家都按同一份契约接进来。GitLab 后端原先写着「本轮不在改造范围内」，那是搬家期的说法；
+  它现在与另外三家一样是内置后端（注册表的内置清单见 `src/tracker/registry/builtins.ts`）。
 - **消费方**：deck 九个工具（经共享壳选好后端后直接调）、注册表（`core.ts`）、
   宿主电话与面板。
 
@@ -42,10 +42,10 @@
    「空数组」与「没有这个能力」是两件事，界面靠这个区别说话。
 3. **没有能力清单**：没有一个 `supportedOps` 之类的表。能力是**运行时调用结果** ——
    能做的返回数据，不能做的当场返回 `unsupported`。这条叫 G5，是红线不是偏好。
-   三个后端「哪几条我实现、哪几条我明确不支持」的逐条登记，是**审计用的文字**
+   各后端「哪几条我实现、哪几条我明确不支持」的逐条登记，是**审计用的文字**
    （写在各自实现里与票面上），不是运行时读的表。
 
-## 能力的上限：26 条，全部写在这一层（2026-10-14 定的规矩，规格 1439 起加读预算）
+## 能力的上限：27 条，全部写在这一层（2026-10-14 定的规矩，规格 1439 起加读预算）
 
 这份契约管的是**能力上限**：一个后端最多能被要求做哪些事，名字都在这里。后端面对每一条只有两种回法——
 **我实现**，或者**我不支持**。**后端不许有自己独有的对外方法**：凡是实例上叫得到名字的东西，
@@ -55,7 +55,7 @@
 也就永远不会因为漏掉某个后端而在某一天炸掉。谁要加一个能力，先把名字加进 `operations-catalog.ts`
 与 `Tracker`，再让后端去实现；实现不了就如实回 `unsupported`，不许换个名字偷偷提供。
 
-26 条分两段，因为「没有答案」的含义不一样：
+27 条分两段，因为「没有答案」的含义不一样：
 
 | 段 | 条数 | 名字 | 注册表怎么兜底 |
 | --- | --- | --- | --- |
@@ -77,9 +77,9 @@
 （`parse.ts` / `normalize.ts`），别的文件直接 import，不经实例；挂在实例上只会让「后端有独有方法」这件事
 继续存在，所以摘掉，不是收敛进契约。
 
-**这条规矩怎么保证落地**：三个后端的工厂（`createGithubBackend` / `createMarkdownBackend` /
-`createGitlabBackend`）都写了返回类型 `: RoomOperations`。写错参数、写错返回类型，编译器当场报错，
-不需要另加一份手写的名字清单去数。今天这三份文件还没有被任何一份类型检查配置圈住
+**这条规矩怎么保证落地**：各后端的工厂（`createGithubBackend` / `createMarkdownBackend` /
+`createGitlabBackend` / `createForgejoBackend`）都写了返回类型 `: RoomOperations`。写错参数、写错返回类型，编译器当场报错，
+不需要另加一份手写的名字清单去数。今天这些文件还没有被任何一份类型检查配置圈住
 （整棵 `src/tracker/rooms/` 仍在「先修后转」的路上），标注先放在那里，配置一落地编译器就开始核对。
 
 ## 与今天的运行时真源的关系（迁移完成，必读）
@@ -125,11 +125,11 @@ node node_modules/typescript/bin/tsc -p tsconfig.contract.json
 
 其余文件：
 
-- `operations.ts` —— 能力层：`Tracker` 接口（26 条能力 = 23 条操作 + 3 条定位口），
+- `operations.ts` —— 能力层：`Tracker` 接口（27 条能力 = 24 条操作 + 3 条定位口），
   以及后端能拿出来的那一份 `RoomOperations`（`Partial<Tracker>`：少实现几条是合规的常态，
-  缺的操作由注册表补「我不支持」的桩）。三个后端工厂都标了这个返回类型，签名核对交给编译器。
+  缺的操作由注册表补「我不支持」的桩）。各后端工厂都标了这个返回类型，签名核对交给编译器。
 - `operations-catalog.ts` —— **名录单源**：`OPERATIONS`（23 条操作名）、`LOCATORS`（3 条定位口名）
-  两个 `as const` 数组，合起来是 `CAPABILITIES`（26 条）；`operations.ts` 的 `OpName` 由它生成
+  两个 `as const` 数组，合起来是 `CAPABILITIES`（27 条）；`operations.ts` 的 `OpName` 由它生成
   （`typeof OPERATIONS[number]`），`index.ts` 的 `OPERATIONS` 从它转出
   （同一份数组、同一个引用，注册表读的那一份）。加一条能力只改这里一处。
 - `backend-module.ts` —— 模块对象形状：`id` / `label` / `create` / `matches` / `budget` 五件套（预算口径规格 1439 起必填），

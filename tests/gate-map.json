@@ -1,16 +1,16 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T22:01:57.855Z",
+  "generatedAt": "2026-11-05T06:55:01.335Z",
   "generatedBy": "node scripts/gate-map.mts",
-  "chainLength": 572,
-  "gateCount": 572,
-  "attributedGates": 516,
+  "chainLength": 574,
+  "gateCount": 574,
+  "attributedGates": 518,
   "unattributedGates": 56,
   "buildOutputOnlyGates": 21,
   "completionRecordedGates": 115,
   "smokeLength": 8,
   "smokeCompletionRecordedGates": 5,
-  "graphFileCount": 904,
+  "graphFileCount": 924,
   "gates": [
     {
       "step": "node tests/verify-1207-splice-ts.ts",
@@ -6709,6 +6709,22 @@
       "reason": "归属来自 文件头 // 门禁归属: 注释（共 2 条）"
     },
     {
+      "step": "node tests/verify-1875-forgejo-client.ts",
+      "file": "tests/verify-1875-forgejo-client.ts",
+      "guards": [
+        "src/tracker/rooms/forgejo/client.ts",
+        "src/tracker/rooms/forgejo/repo.ts"
+      ],
+      "dirs": [
+        "src/tracker/rooms/forgejo"
+      ],
+      "unattributed": false,
+      "buildOutputOnly": false,
+      "completionRecord": false,
+      "expectedAssertions": 0,
+      "reason": "归属来自：静态 import 说明符 2 条"
+    },
+    {
       "step": "node tests/verify-1879-suggest-deck-gate.ts",
       "file": "tests/verify-1879-suggest-deck-gate.ts",
       "guards": [
@@ -9409,6 +9425,7 @@
       "guards": [
         "docs/tracker",
         "src/tracker/contract/capability-answer.ts",
+        "src/tracker/rooms/forgejo/capability-register.ts",
         "src/tracker/rooms/github/support/capability-register.ts",
         "src/tracker/rooms/gitlab/capability-register.ts",
         "src/tracker/rooms/markdown/capability-register.ts"
@@ -9416,6 +9433,7 @@
       "dirs": [
         "docs/tracker",
         "src/tracker/contract",
+        "src/tracker/rooms/forgejo",
         "src/tracker/rooms/github/support",
         "src/tracker/rooms/gitlab",
         "src/tracker/rooms/markdown"
@@ -9424,7 +9442,7 @@
       "buildOutputOnly": false,
       "completionRecord": false,
       "expectedAssertions": 0,
-      "reason": "归属来自 文件头 // 门禁归属: 注释（共 5 条）"
+      "reason": "归属来自 文件头 // 门禁归属: 注释（共 6 条）"
     },
     {
       "step": "node tests/verify-capsule-layout.ts",
@@ -9945,6 +9963,7 @@
         "src/tracker/kernel/error-rules.ts",
         "src/tracker/kernel/outbound-tiers.ts",
         "src/tracker/kernel/preflight.ts",
+        "src/tracker/rooms/forgejo/writes.ts",
         "src/tracker/rooms/github/routing/fallback-reason.ts",
         "src/tracker/rooms/github/support/init-project-error-kinds.ts",
         "src/tracker/rooms/github/write/init-project.ts",
@@ -9958,6 +9977,7 @@
         "src/tracker",
         "src/tracker/contract",
         "src/tracker/kernel",
+        "src/tracker/rooms/forgejo",
         "src/tracker/rooms/github/routing",
         "src/tracker/rooms/github/support",
         "src/tracker/rooms/github/write",
@@ -9967,7 +9987,7 @@
       "buildOutputOnly": false,
       "completionRecord": false,
       "expectedAssertions": 0,
-      "reason": "归属来自：源码里的路径字面量 19 条"
+      "reason": "归属来自：源码里的路径字面量 20 条"
     },
     {
       "step": "node tests/verify-event-budget.ts",
@@ -10058,6 +10078,21 @@
       "reason": "归属来自：读文件调用（readFileSync / readFile / path.join(ROOT, ...)） 1 条；载入模块（require / import / pathToFileURL） 1 条；源码里的路径字面量 4 条"
     },
     {
+      "step": "node tests/verify-forgejo-parsers.ts",
+      "file": "tests/verify-forgejo-parsers.ts",
+      "guards": [
+        "src/tracker/rooms/forgejo/text.ts"
+      ],
+      "dirs": [
+        "src/tracker/rooms/forgejo"
+      ],
+      "unattributed": false,
+      "buildOutputOnly": false,
+      "completionRecord": false,
+      "expectedAssertions": 0,
+      "reason": "归属来自 文件头 // 门禁归属: 注释（共 1 条）"
+    },
+    {
       "step": "node tests/verify-gate-accounting.ts",
       "file": "tests/verify-gate-accounting.ts",
       "guards": [
@@ -10132,6 +10167,8 @@
         "src/refresh/rooms/host/git-execution.ts",
         "src/refresh/rooms/host/quota-ledger.ts",
         "src/refresh/rooms/host/refresh-gate.ts",
+        "src/tracker/rooms/forgejo/client.ts",
+        "src/tracker/rooms/forgejo/repo.ts",
         "src/tracker/rooms/github/transport/client.ts",
         "src/tracker/rooms/gitlab/client.ts",
         "src/tracker/rooms/gitlab/index.ts",
@@ -10145,6 +10182,7 @@
         "src/host",
         "src/host/platform",
         "src/refresh/rooms/host",
+        "src/tracker/rooms/forgejo",
         "src/tracker/rooms/github/transport",
         "src/tracker/rooms/gitlab",
         "tests/fixtures/gh-gateway"
@@ -10153,7 +10191,7 @@
       "buildOutputOnly": false,
       "completionRecord": false,
       "expectedAssertions": 0,
-      "reason": "归属来自：读文件调用（readFileSync / readFile / path.join(ROOT, ...)） 3 条；源码里的路径字面量 12 条"
+      "reason": "归属来自：读文件调用（readFileSync / readFile / path.join(ROOT, ...)） 3 条；源码里的路径字面量 14 条"
     },
     {
       "step": "node tests/verify-ghes-runtime-capability.ts",
@@ -15174,6 +15212,13 @@
       "node tests/verify-error-rule-samples.ts",
       "node tests/verify-prompts.ts"
     ],
+    "src/tracker/rooms/forgejo": [
+      "node tests/verify-1875-forgejo-client.ts",
+      "node tests/verify-capability-register.ts",
+      "node tests/verify-error-single-source.ts",
+      "node tests/verify-forgejo-parsers.ts",
+      "node tests/verify-gh-gateway.ts"
+    ],
     "src/tracker/rooms/github": [
       "node tests/verify-no-mixed-session.ts",
       "node tests/verify-1242-panel-numbers.ts",
@@ -15756,12 +15801,12 @@
   },
   "coverage": {
     "sourceRoot": "src",
-    "fileCount": 927,
-    "dirCount": 92,
-    "coveredFileCount": 927,
+    "fileCount": 949,
+    "dirCount": 93,
+    "coveredFileCount": 949,
     "ungatedFileCount": 0,
     "ungatedDirCount": 0,
-    "dedicatedDirCount": 73,
+    "dedicatedDirCount": 74,
     "guardedFiles": [
       "src/client/floating/Pop.ts",
       "src/client/floating/SkillFloatList.ts",
@@ -16504,6 +16549,28 @@
       "src/tracker/registry/shape.ts",
       "src/tracker/registry/views.ts",
       "src/tracker/rooms/README.md",
+      "src/tracker/rooms/forgejo/README.md",
+      "src/tracker/rooms/forgejo/SETUP-PROMPT.md",
+      "src/tracker/rooms/forgejo/budget.ts",
+      "src/tracker/rooms/forgejo/capability-register.ts",
+      "src/tracker/rooms/forgejo/client.ts",
+      "src/tracker/rooms/forgejo/counts.ts",
+      "src/tracker/rooms/forgejo/description-markers.ts",
+      "src/tracker/rooms/forgejo/errors.ts",
+      "src/tracker/rooms/forgejo/graph.ts",
+      "src/tracker/rooms/forgejo/identity-ops.ts",
+      "src/tracker/rooms/forgejo/index.ts",
+      "src/tracker/rooms/forgejo/issues.ts",
+      "src/tracker/rooms/forgejo/labels.ts",
+      "src/tracker/rooms/forgejo/normalize.ts",
+      "src/tracker/rooms/forgejo/preflight.ts",
+      "src/tracker/rooms/forgejo/provenance.ts",
+      "src/tracker/rooms/forgejo/read-log.ts",
+      "src/tracker/rooms/forgejo/repo.ts",
+      "src/tracker/rooms/forgejo/search.ts",
+      "src/tracker/rooms/forgejo/text.ts",
+      "src/tracker/rooms/forgejo/write-issues.ts",
+      "src/tracker/rooms/forgejo/writes.ts",
       "src/tracker/rooms/github/channels/graphql/comment-paging.ts",
       "src/tracker/rooms/github/channels/graphql/index.ts",
       "src/tracker/rooms/github/channels/graphql/queries.ts",
@@ -16761,6 +16828,7 @@
       "src/tracker/kernel",
       "src/tracker/registry",
       "src/tracker/rooms",
+      "src/tracker/rooms/forgejo",
       "src/tracker/rooms/github",
       "src/tracker/rooms/github/channels",
       "src/tracker/rooms/github/channels/graphql",
@@ -16840,6 +16908,7 @@
       "src/tracker/kernel",
       "src/tracker/registry",
       "src/tracker/rooms",
+      "src/tracker/rooms/forgejo",
       "src/tracker/rooms/github",
       "src/tracker/rooms/github/channels/graphql",
       "src/tracker/rooms/github/channels/rest",

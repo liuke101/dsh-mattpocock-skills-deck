@@ -8,6 +8,7 @@
 | GitHub | `github/` | 定稿 GitHub 后端（#114） | `gh` |
 | 本地 Markdown | `markdown/` | 定稿本地 Markdown 后端（#115） | 直接读写 `.scratch/` | 
 | GitLab | `gitlab/` | 定稿 GitLab 后端（#116） | `glab` |
+| Forgejo | `forgejo/` | 自建实例后端（#1875） | `fj` |
 | 第三方示例 | `examples/demo-mini/`（**不在**本目录，不默认装配） | 立第三方扩展范式（#117 #148 demo-mini） | 内存/文件（示例） |
 
 ## 一个后端目录的构成（按操作域拆文件，避免单文件过大、AI 不漏分支）
@@ -35,7 +36,7 @@
 
 纪律一：代码门禁 —— 禁止跨房引用（判据门禁 tests/verify-dependency-rules.ts；规则在根目录 .dependency-cruiser.ts，起点按 `src/tracker/rooms/([^/]+)/` 抓房名，不写死哪几间房）
 
-- 扫描域：src/tracker/rooms/<名字>/ 下的内置后端（今天三座：github、gitlab、markdown），两两禁止相互 import；examples/demo-mini 等第三方扩展不在域内。
+- 扫描域：src/tracker/rooms/<名字>/ 下的内置后端（今天四座：github、gitlab、markdown、forgejo），两两禁止相互 import；examples/demo-mini 等第三方扩展不在域内。
 - 检查对象：静态 import / export ... from 与动态 import('...') 的字面量说明符；每条违规输出文件、行号、目标房间。
 - 规则自己实现的两种放行（不是登记表条目，也不该写进登记表）：
   - node 内置模块（含 node: 前缀与裸名如 path / fs）

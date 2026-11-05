@@ -110,7 +110,7 @@ export const myBudget = {
 - 四个 `kind` 的意思：`two-buckets` 是请求数与点数分两个独立桶（GitHub）；`requests-only` 只有一个按次数计的额度（GitLab）；`off-network` 是本地或离网后端，不需要额度（Markdown、示例 demo-mini）；`unknown` 是暂时说不清，账本只记发出去的请求数——不要拿它掩盖一个其实知道的口径。
 - 形状真源是 `src/tracker/contract/budget-model.ts`，校验在 `src/tracker/registry/shape.ts:121,146`。缺声明或形状不对，注册当场失败，报错点名缺哪一格，原文形如：`BackendModule 'my-backend' budget invalid: budget 必须是一个对象（后端模块缺预算声明）`。
 - 不要按 `backendId` 写等值分支：闸和账本只读声明，静态门禁会拦住「按后端编号写死」的写法。
-- 三个内置后端今天的声明：GitHub 两个独立桶、GitLab 只计请求数、Markdown 离网，分别住在各自房间的 `index.ts` 的 `budget` 字段；示例 `examples/demo-mini/index.ts` 也带了一份离网声明，可直接照抄结构。
+- 四个内置后端今天的声明：GitHub 两个独立桶、GitLab 与 Forgejo 只计请求数、Markdown 离网，分别住在各自房间的 `index.ts` 的 `budget` 字段；示例 `examples/demo-mini/index.ts` 也带了一份离网声明，可直接照抄结构。
 
 **额度读数 `readBudget`**（能力名录第 26 条，操作名录第 23 条）：
 
@@ -128,7 +128,7 @@ export const myBudget = {
 ```
 
 - 三个 `reason` 的分工：`not-measured` 是还没测到（例如命令不在本机）；`unavailable` 是测到了但这次取不到（鉴权失败、网络错误、解析失败、响应头缺数）；`unsupported` 是这个后端根本没有这项能力。
-- 参考实现：GitHub 在 `src/tracker/rooms/github/budget.ts`（REST 与 GraphQL 两个桶）、GitLab 在 `src/tracker/rooms/gitlab/budget.ts`（读 `RateLimit-Limit` / `RateLimit-Remaining` 响应头）、Markdown 在 `src/tracker/rooms/markdown/budget.ts`（恒离网）。
+- 参考实现：GitHub 在 `src/tracker/rooms/github/budget.ts`（REST 与 GraphQL 两个桶）、GitLab 在 `src/tracker/rooms/gitlab/budget.ts`（读 `RateLimit-Limit` / `RateLimit-Remaining` 响应头）、Forgejo 在 `src/tracker/rooms/forgejo/budget.ts`（没有可问的接口，诚实回 `not-measured`）、Markdown 在 `src/tracker/rooms/markdown/budget.ts`（恒离网）。
 - 参考测试：`tests/verify-tracker-session.ts`（三态与不裁决不记账）、`tests/verify-1443-github-readbudget.ts`（gh 缺失、未登录、网络失败都回未知并带原因，不回 0）、`tests/verify-1446-gitlab-budget.ts`、`tests/verify-1447-gitlab-e2e.ts`（真房间 + 假 glab，不联网）。
 - 这条对第三方后端是**破坏性变更**：不交 `budget` 的模块以前能注册，今天注册直接失败。发布说明里已写明；第三方按本节补一份声明即可，操作实现本身不用改。
 

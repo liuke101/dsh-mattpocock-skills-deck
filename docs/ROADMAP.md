@@ -6,7 +6,8 @@
 
 - **GitHub：完全支持**。面板的行级 triage / 修复 / 讨论 / 执行、wayfinder 地图、跨会话 handoff，都围绕它打磨，是现在的主力。
 - **Markdown 本地文件：半成品（预览版）**。能用，已知有较多问题，欢迎反馈。
-- **GitLab：计划中**。当前版本暂不在支持范围，未来会做。
+- **GitLab：独立适配已完成**。逐条能力见 `docs/tracker/capability-gitlab.md`，仍按实际使用反馈继续补缺口。
+- **Forgejo：独立适配已完成**。经 `fj`（forgejo-cli）读写自建实例，逐条能力与已知缺口见 `docs/tracker/capability-forgejo.md`。
 
 ## 未来展望
 
