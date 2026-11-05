@@ -19,7 +19,7 @@
 import type { BackendModule } from '../contract/backend-module.js'
 
 /** 内置房间的编号。房间名是数据：依赖规则的起点判据不写房名，房间清单只有这里一处。 */
-export type BuiltinRoomId = 'github' | 'gitlab' | 'markdown'
+export type BuiltinRoomId = 'github' | 'gitlab' | 'markdown' | 'forgejo'
 
 /**
  * 内置房间的名单与注册顺序：github → markdown → gitlab。
@@ -29,7 +29,7 @@ export type BuiltinRoomId = 'github' | 'gitlab' | 'markdown'
  * 逐位一致 —— 两处不一致时，同一组多命中会得出两种结论。门禁 tests/verify-detection-evidence.ts
  * 的 D 节读的就是这里，改名单就得同时看那两处。
  */
-export const BUILTIN_ROOM_IDS: readonly BuiltinRoomId[] = ['github', 'markdown', 'gitlab']
+export const BUILTIN_ROOM_IDS: readonly BuiltinRoomId[] = ['github', 'markdown', 'gitlab', 'forgejo']
 
 /**
  * 挑出注册表要的那一份模块对象。
@@ -55,6 +55,10 @@ async function backendModuleOf(id: BuiltinRoomId): Promise<BackendModule> {
   if (id === 'gitlab') {
     const ns = await import('../rooms/gitlab/index.js')
     return ns.gitlabBackend
+  }
+  if (id === 'forgejo') {
+    const ns = await import('../rooms/forgejo/index.js')
+    return ns.forgejoBackend
   }
   const ns = await import('../rooms/markdown/index.js')
   return ns.markdownModule
@@ -145,3 +149,4 @@ export async function loadMarkdownHostExtras(): Promise<MarkdownHostExtras> {
 export type { GithubBackendMembers, GithubBackendShape, createGithubBackend } from '../rooms/github/room/backend.js'
 export type { GitlabBackendMembers, GitlabBackendShape, createGitlabBackend } from '../rooms/gitlab/index.js'
 export type { MarkdownBackendMembers, MarkdownBackendShape, createMarkdownBackend } from '../rooms/markdown/index.js'
+export type { ForgejoBackendMembers, ForgejoBackendShape, createForgejoBackend } from '../rooms/forgejo/index.js'

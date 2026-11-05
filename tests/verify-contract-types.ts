@@ -15,9 +15,9 @@
 //       `Object.freeze` 与字面量是合法的数据写法）、`require(`、动态 `import(`；
 //       值引用只许目录内互引（数据引数据，目标文件自己也过这一条，所以不形成行为入口），
 //       指到目录外的、包名的、裸副作用引用的，一律判红。发现就判红，并指出文件与行号。
-//   三、后端自己声明了对上契约：三个后端的模块对象都用 `satisfies BackendModule` 挂上契约
+//   三、后端自己声明了对上契约：四个后端的模块对象都用 `satisfies BackendModule` 挂上契约
 //       （去掉注释后按文本找这三处），且这份声明真会被编译检查——看它的是域配置
-//       `src/tracker/tsconfig.json`（strict，include 是目录通配，三个后端目录都在里面）与
+//       `src/tracker/tsconfig.json`（strict，include 是目录通配，四个后端目录都在里面）与
 //       覆盖对账 `scripts/typecheck.mts`（门禁 `tests/verify-typecheck.mts`），两处都必须在盘上。
 //       3b、入口不断言：装配点 `src/tracker/registry/builtins.ts` 里不许出现对 BackendModule
 //       的 as 断言（单写多写都算）——#1192 起，交模块的形状由 `backendModuleOf` 的
@@ -38,7 +38,7 @@
 //       （装配点交模块的姿势）再编一次，同样必须编不过且点名 `matches`——
 //       只删声明、形状又走样时，拦住它的就是入口这个检查点。（#1192 新加，
 //       与上面退休的那条旧 4b 同名不同物，不要混。）
-//   五、运行时腿：把三个后端模块对象真加载起来（加载失败就红），断两档真值——
+//   五、运行时腿：把四个后端模块对象真加载起来（加载失败就红），断两档真值——
 //       `openRepository` 必须是 `'url'` 或 `'folder'`：内置三家一律要声明
 //       （契约里那个成员对第三方后端仍可选）。
 //       这条口径是 #1139 收紧的：旧写法把「不声明」也算合法，那道口子正是 #1117 能长期躲在绿里的
@@ -105,7 +105,7 @@
 //   第三项是文本查找，不是类型检查：它只认 `satisfies BackendModule` 这个写法。有人换成
 //   标注（`const x: BackendModule = {…}`）这类等价写法、或把模块对象挪到别的文件时，本项要按
 //   新落点改上面的 `BACKEND_DECLARATIONS`；反过来，只把那一句删掉、别的不动，本项一定红。
-//   第三项不审三个后端内部的类型债：那是 `src/tracker/tsconfig.json` 的账（strict、零错误），
+//   第三项不审四个后端内部的类型债：那是 `src/tracker/tsconfig.json` 的账（strict、零错误），
 //   本门禁不另数一份（#1147 决策 8：一个门禁不养两套账）。
 //   3b 只查入口文件（`src/tracker/registry/builtins.ts`），且只认 as 断言写法；
 //   `validateMod` 自己内部那一处收窄（`shape.ts`）是断言函数分内的事，不在 3b 范围内。
@@ -135,11 +135,12 @@ const BACKEND_DECLARATIONS = [
   { rel: 'src/tracker/rooms/github/room/index.ts', what: 'githubModule' },
   { rel: 'src/tracker/rooms/markdown/index.ts', what: 'markdownModule' },
   { rel: 'src/tracker/rooms/gitlab/index.ts', what: 'gitlabBackend' },
+  { rel: 'src/tracker/rooms/forgejo/index.ts', what: 'forgejoBackend' },
 ]
 /** 声明必须长成这样（第三项的正则；大小写与空格宽松，只认这个挂法）。 */
 const BACKEND_DECLARATION_RE = /satisfies\s+BackendModule\b/
 /**
- * 替代贴合探针的那条腿（第三项要确认它在盘上）：域配置给三个后端做 strict 类型检查，
+ * 替代贴合探针的那条腿（第三项要确认它在盘上）：域配置给四个后端做 strict 类型检查，
  * 覆盖对账统一管「有没有源码没人检查」。两者缺一，这句声明就没有腿去检查。
  */
 const ALT_DOMAIN_CONFIG_REL = 'src/tracker/tsconfig.json'
@@ -183,6 +184,11 @@ const RUNTIME_SNAPSHOTS = {
    * 所以下面这份键快照今天是 17 个（那 16 个名字，加上这次新挂的 `openRepository`）。
    */
   gitlab: {
+    openRepository: 'url',
+    checksKind: 'absent',
+  },
+  // Forgejo 模块对象（#1875 实测）：开仓动作与 GitLab 同型，检查目录未声明。
+  forgejo: {
     openRepository: 'url',
     checksKind: 'absent',
   },
@@ -390,7 +396,7 @@ function main(): void {
     )
   }
   {
-    // 声明要真被编译检查才算数：看它的是域配置（strict，include 是目录通配，三个后端目录都在里面）
+    // 声明要真被编译检查才算数：看它的是域配置（strict，include 是目录通配，四个后端目录都在里面）
     // 与覆盖对账。本门禁不另养一套账（#1147 决策 8），只确认那条腿还在盘上——腿没了，
     // 这句声明就只是一行文字，不是「编译器是唯一检查者」。
     const altConfig = path.join(ROOT, ALT_DOMAIN_CONFIG_REL)
@@ -399,9 +405,9 @@ function main(): void {
     const altGateOk = fs.existsSync(altGate)
     check(
       altConfigOk && altGateOk,
-      '三个后端的形态由 ' + ALT_DOMAIN_CONFIG_REL + '（strict 域配置，include 是目录通配）与覆盖对账 ' +
+      '四个后端的形态由 ' + ALT_DOMAIN_CONFIG_REL + '（strict 域配置，include 是目录通配）与覆盖对账 ' +
         ALT_COVERAGE_GATE_REL + ' 守，两处都在盘上' +
-        (!altConfigOk ? '；' + ALT_DOMAIN_CONFIG_REL + ' 不在：三个后端没有类型检查' : '') +
+        (!altConfigOk ? '；' + ALT_DOMAIN_CONFIG_REL + ' 不在：四个后端没有类型检查' : '') +
         (!altGateOk ? '；' + ALT_COVERAGE_GATE_REL + ' 不在：覆盖对账那条腿没了' : ''),
     )
   }
@@ -545,27 +551,28 @@ function main(): void {
     const hookUrl = pathToFileURL(hookAbs).href
     // 三家现在都是 .ts 真源（GitHub #1133、本地 Markdown #1134、GitLab #1135，2026-10-14 同日收口），
     // 所以这里三家都直接点 .ts：走的是真源，不是构建产物，也不必依赖加载钩子的「同名 .ts 优先」那一步。
-    const evalScript = `Promise.all([import('./src/tracker/rooms/github/room/index.ts'), import('./src/tracker/rooms/markdown/index.ts'), import('./src/tracker/rooms/gitlab/index.ts')]).then(([g, m, l]) => {` +
+    const evalScript = `Promise.all([import('./src/tracker/rooms/github/room/index.ts'), import('./src/tracker/rooms/markdown/index.ts'), import('./src/tracker/rooms/gitlab/index.ts'), import('./src/tracker/rooms/forgejo/index.ts')]).then(([g, m, l, f]) => {` +
       ` const kind = (v) => v === undefined ? 'absent' : (Array.isArray(v) ? 'array' : (typeof v === 'function' ? 'function' : typeof v));` +
       ` console.log(JSON.stringify({` +
       ` github: { openRepository: g.githubModule.openRepository, checksKind: kind(g.githubModule.checks) },` +
       ` markdown: { openRepository: m.markdownModule.openRepository, checksKind: kind(m.markdownModule.checks) },` +
-      ` gitlab: { openRepository: l.gitlabBackend.openRepository, checksKind: kind(l.gitlabBackend.checks) }}))` +
+      ` gitlab: { openRepository: l.gitlabBackend.openRepository, checksKind: kind(l.gitlabBackend.checks) },` +
+      ` forgejo: { openRepository: f.forgejoBackend.openRepository, checksKind: kind(f.forgejoBackend.checks) }}))` +
       ` })`
     const rr = spawnSync(process.execPath, ['--import', hookUrl, '--eval', evalScript], { encoding: 'utf8', timeout: 120000 })
     if (rr.error) {
       check(false, '运行时腿能跑起来（起进程失败）：' + (rr.error.message || String(rr.error)))
     } else if (rr.status !== 0) {
-      check(false, '三个后端模块对象能真加载（退出码 ' + rr.status + '）：' + String(rr.stderr || '').slice(-300))
+      check(false, '四个后端模块对象能真加载（退出码 ' + rr.status + '）：' + String(rr.stderr || '').slice(-300))
     } else {
       let snap: Record<string, { openRepository?: unknown; checksKind?: string }> | null = null
       try { snap = JSON.parse(String(rr.stdout || '').trim().split(/\r?\n/).pop()) } catch { snap = null }
-      if (!snap || !snap.github || !snap.markdown || !snap.gitlab) {
+      if (!snap || !snap.github || !snap.markdown || !snap.gitlab || !snap.forgejo) {
         check(false, '运行时快照读得出来（输出解析失败）：' + String(rr.stdout || '').slice(-200))
       } else {
         // 快照里「不声明」写成 undefined，打印时要能一眼看出来是「不声明」而不是漏填，所以这里换个写法。
         const showRepo = (v: unknown): string => (v === undefined ? '不声明' : JSON.stringify(v))
-        for (const name of ['github', 'markdown', 'gitlab']) {
+        for (const name of ['github', 'markdown', 'gitlab', 'forgejo']) {
           const want = RUNTIME_SNAPSHOTS[name]
           const got = snap[name]
           // #1139 起：内置三家必须声明。旧写法把「不声明」也算合法，那道口子正是 #1117 能长期存活的

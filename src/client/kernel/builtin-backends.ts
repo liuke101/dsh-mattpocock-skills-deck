@@ -12,7 +12,7 @@
  * 真源是这份，同名 JavaScript 是构建产物。转写只加这一处注记与参数的类型标注，
  * 名单内容、函数行为、导出名一字未动。
  */
-export const BUILTIN_BACKENDS = [{ id: 'github', label: 'GitHub' }, { id: 'markdown', label: 'Markdown' }, { id: 'gitlab', label: 'GitLab' }]
+export const BUILTIN_BACKENDS = [{ id: 'github', label: 'GitHub' }, { id: 'markdown', label: 'Markdown' }, { id: 'gitlab', label: 'GitLab' }, { id: 'forgejo', label: 'Forgejo' }]
 // #1600（#1188 跟进）：GitLab 能力已补齐，三处窗都不再置灰 —— 名单清空，界面可选性恢复三后端全可选。
 //   名单本身保留为空数组：切换弹窗、面板门控窗、状态栏门控窗三处仍问同一份答案，只是今天答案是「都不锁」。
 //   名单只管界面可选性，不参与判定链；以后若再有后端能力不全，把它的标识加回这份名单即可。

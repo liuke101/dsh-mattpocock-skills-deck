@@ -44,12 +44,14 @@ const G = {
     github: { trackerLine: '本仓库为 GitHub ' + ARROW + ' 提议 GitHub Issues', trackerChoice: 'GitHub Issues', backendNote: '\n\n本次已选后端：GitHub。' },
     markdown: { trackerLine: '本仓库为本地文件 ' + ARROW + ' 提议 Local markdown', trackerChoice: 'Local markdown', backendNote: '\n\n本次已选后端：Markdown ' + EMDASH + ' 生成 docs/agents/issue-tracker.md 时，把技能自带的本地模板（issue-tracker-local.md）逐字复制过去，模板里每一句做法说明都保持原样，不改写、不省略、不追加；仓库里票与规格的文件格式和位置，一律以这份模板为唯一依据。建票、认领、改状态这些动作仍然用 deck 工具执行，但它们写出来的文件要与模板完全一致。生成完读回这份文档，逐句核对与模板逐字相同。' },
     gitlab: { trackerLine: '本仓库为 GitLab ' + ARROW + ' 提议 GitLab Issues', trackerChoice: 'GitLab Issues', backendNote: '\n\n本次已选后端：GitLab ' + EMDASH + ' 请按 GitLab 模板生成 docs/agents/issue-tracker.md' },
+    forgejo: { trackerLine: '本仓库为 Forgejo ' + ARROW + ' 提议 Forgejo Issues', trackerChoice: 'Forgejo Issues', backendNote: '\n\n本次已选后端：Forgejo ' + EMDASH + ' 请参照 GitHub 那份模板的结构生成 docs/agents/issue-tracker.md，但其中的命令一律换成 fj（Forgejo 命令行）；建票、改票、评论、指派都经 deck 工具执行，不要教人去网页上手工操作。' },
     default: { trackerLine: '本仓库为 GitHub ' + ARROW + ' 提议 GitHub Issues', trackerChoice: 'GitHub Issues', backendNote: '\n\n本次未指定后端，已按默认 GitHub 初始化；可在设置页随时切换' },
   },
   en: {
     github: { trackerLine: 'this repo is on GitHub ' + ARROW + ' propose GitHub Issues', trackerChoice: 'GitHub Issues', backendNote: '\n\nSelected backend: GitHub.' },
     markdown: { trackerLine: 'this repo uses local files ' + ARROW + ' propose Local markdown', trackerChoice: 'Local markdown', backendNote: '\n\nSelected backend: Markdown ' + EMDASH + ' when generating docs/agents/issue-tracker.md, copy the skill\'s bundled local template (issue-tracker-local.md) over verbatim: keep every instruction in it exactly as written, without rewriting, omitting, or adding anything; the file format and location of specs and issues in this repo follow that template as the single source of truth. Creating tickets, claiming them, and updating status still run through the deck tools, but the files those tools write must match the template exactly. After generating the document, read it back and check sentence by sentence that it matches the template word for word.' },
     gitlab: { trackerLine: 'this repo is on GitLab ' + ARROW + ' propose GitLab Issues', trackerChoice: 'GitLab Issues', backendNote: '\n\nSelected backend: GitLab ' + EMDASH + ' please generate docs/agents/issue-tracker.md from the GitLab template.' },
+    forgejo: { trackerLine: 'this repo is on Forgejo ' + ARROW + ' propose Forgejo Issues', trackerChoice: 'Forgejo Issues', backendNote: '\n\nSelected backend: Forgejo ' + EMDASH + ' please generate docs/agents/issue-tracker.md following the structure of the GitHub template, but with every command replaced by fj (the Forgejo command-line tool). Creating, updating, commenting on, and assigning tickets still run through the deck tools; do not tell people to do these by hand in the web UI.' },
     default: { trackerLine: 'this repo is on GitHub ' + ARROW + ' propose GitHub Issues', trackerChoice: 'GitHub Issues', backendNote: '\n\nNo backend explicitly selected, defaulting to GitHub; you can switch anytime in Settings ' + ARROW + ' Backend.' },
   },
 }
@@ -142,7 +144,7 @@ async function main() {
   const L = { zh: Object.assign({}, LOCALE_PANEL.L_PANEL.zh, LOCALE_FLOW.L_FLOW.zh, LOCALE_WORD.L_WORD.zh, LOCALE_PAGES.L_PAGES.zh), en: Object.assign({}, LOCALE_PANEL.L_PANEL.en, LOCALE_FLOW.L_FLOW.en, LOCALE_WORD.L_WORD.en, LOCALE_PAGES.L_PAGES.en) }
 
   // ---- 后端声明提取 ----
-  const BACKENDS = ['github', 'markdown', 'gitlab']
+  const BACKENDS = ['github', 'markdown', 'gitlab', 'forgejo']
   // #1687 阶段 1 收口：github 的房间入口整份搬进 room/，其余两房入口仍在各自房间根。
   const ENTRY_FILE: any = { github: 'src/tracker/rooms/github/room/index.ts' }
   const stubs = []
@@ -178,7 +180,7 @@ async function main() {
   check(fieldTableSrc.indexOf("'setupPrompt'") >= 0, '界面描述字段表里有 setupPrompt：wf.registry 转发它靠的是这张表（#1139）')
   // 快照镜像：locale 双语键一一成对存在（防单一语言漂移）
   const keyList = []
-  for (const ns of ['github', 'markdown', 'gitlab', 'default']) for (const f of ['trackerLine', 'trackerChoice', 'backendNote', 'labelReqs']) keyList.push('setup.' + ns + '.' + f)
+  for (const ns of ['github', 'markdown', 'gitlab', 'forgejo', 'default']) for (const f of ['trackerLine', 'trackerChoice', 'backendNote', 'labelReqs']) keyList.push('setup.' + ns + '.' + f)
   for (const k of keyList) check(L.zh[k] !== undefined && L.en[k] !== undefined, 'locale 双语键齐全 ' + k)
   // #619：v10 那条 paletteNote 键已从两份词表里删掉——这里反过来钉住「不许复活」：
   //   判据与原来「双语键齐全」同强，只是一个要求它在、一个要求它不在。

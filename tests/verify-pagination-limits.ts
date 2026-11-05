@@ -69,6 +69,16 @@ const EXPECTED = {
     limitDefault: 50,
     limitMax: 200,
   },
+  forgejo: {
+    limitDefault: 50,
+    limitMax: 200,
+    listMaxPages: 60,
+    anchorLookupMaxPages: 3,
+    anchorLookupMaxCandidates: 50,
+    subIssuesMaxPages: 5,
+    subIssuesMaxCandidates: 200,
+    labelMembershipMaxPages: 20,
+  },
 } as const
 
 // 源码里不许再出现的分页额度写法。每条都是「把数字写死在调用点」的典型形状，注释里已剥掉注释再匹配，
@@ -237,13 +247,13 @@ for (const rel of scanned) {
 }
 check(importHits.length === 0, '用了 PAGINATION 的房内文件都从共享表导入', importHits.length === 0 ? undefined : { path: importHits.join('、'), key: 'import', note: `这些文件用了 PAGINATION 却没有从 contract/pagination.js 导入：${importHits.join('、')}` })
 
-// 第四节：共享表文件存在，且三个后端分组一个都不少（分组少了会让某一房静默退回「没页面大小」的默认值）。
+// 第四节：共享表文件存在，且四个后端分组一个都不少（分组少了会让某一房静默退回「没页面大小」的默认值）。
 check(fs.existsSync(path.join(ROOT, SHARED)), `共享表文件存在：${SHARED}`, { path: SHARED, key: 'exists', note: '共享表文件不存在' })
 const groups = typeof actualTable === 'object' && actualTable !== null ? Object.keys(actualTable as Record<string, unknown>).sort() : []
 check(
-  groups.join(',') === 'github,gitlab,markdown',
-  '共享表按三个后端分组：github、gitlab、markdown',
-  groups.join(',') === 'github,gitlab,markdown' ? undefined : { path: SHARED, key: 'groups', note: `共享表的分组是 ${groups.join(',') || '(空)'}，期望 github,gitlab,markdown` },
+  groups.join(',') === 'forgejo,github,gitlab,markdown',
+  '共享表按四个后端分组：github、gitlab、markdown、forgejo',
+  groups.join(',') === 'forgejo,github,gitlab,markdown' ? undefined : { path: SHARED, key: 'groups', note: `共享表的分组是 ${groups.join(',') || '(空)'}，期望 forgejo,github,gitlab,markdown` },
 )
 
 console.log('')

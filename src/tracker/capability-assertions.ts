@@ -36,6 +36,7 @@ import type { OPERATIONS, LOCATORS } from './contract/operations-catalog.js'
 import type { GithubBackendMembers, createGithubBackend } from './registry/builtins.js'
 import type { GitlabBackendMembers, createGitlabBackend } from './registry/builtins.js'
 import type { MarkdownBackendMembers, createMarkdownBackend } from './registry/builtins.js'
+import type { ForgejoBackendMembers, createForgejoBackend } from './registry/builtins.js'
 
 /** 名录两段合起来的全部名字（27 个，规格 1602 起含地图薄行）。 */
 type _CapabilityName = (typeof OPERATIONS)[number] | (typeof LOCATORS)[number]
@@ -64,6 +65,8 @@ type _GitlabComplete<T extends Record<GitlabBackendMembers, unknown>> = T
 type _GitlabIsComplete = _GitlabComplete<ReturnType<typeof createGitlabBackend>>
 type _MarkdownComplete<T extends Record<MarkdownBackendMembers, unknown>> = T
 type _MarkdownIsComplete = _MarkdownComplete<ReturnType<typeof createMarkdownBackend>>
+type _ForgejoComplete<T extends Record<ForgejoBackendMembers, unknown>> = T
+type _ForgejoIsComplete = _ForgejoComplete<ReturnType<typeof createForgejoBackend>>
 
 /**
  * 断言 3（不多）：工厂交出来的成员键，必须全在契约里（`RoomOperations` 的键）。
@@ -74,3 +77,4 @@ type _NoExcessMembers<T extends Record<Exclude<keyof T, keyof RoomOperations>, n
 type _GithubNoExcess = _NoExcessMembers<ReturnType<typeof createGithubBackend>>
 type _GitlabNoExcess = _NoExcessMembers<ReturnType<typeof createGitlabBackend>>
 type _MarkdownNoExcess = _NoExcessMembers<ReturnType<typeof createMarkdownBackend>>
+type _ForgejoNoExcess = _NoExcessMembers<ReturnType<typeof createForgejoBackend>>

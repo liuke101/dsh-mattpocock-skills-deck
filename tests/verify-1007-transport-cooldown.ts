@@ -231,10 +231,13 @@ async function main(): Promise<void> {
     check(/ghQueueWaitTimeoutMs:\s*10000/.test(yamlSrc), '五、排队上限在 config/timeouts.yaml 里有一处定义（10000 毫秒）', '')
     const tiersSrc = fs.readFileSync(path.join(ROOT, 'src/tracker/kernel/outbound-tiers.ts'), 'utf8')
     check(/queueTimeoutForTier/.test(tiersSrc) && /GH_QUEUE_WAIT_TIMEOUT_MS/.test(tiersSrc) && /queueTimeoutForTier/.test(ghExecSrc) && /waitMs/.test(ghExecSrc), '五、排队上限来自中央配置，宿主 runGh 只把预算递给闸', '')
-    // #1007 复核：三条出站通道拿名额时都要报服务名，GitHub 的通路故障才不会挡住 GitLab 与 git。
-    check(/service:\s*deIsGh\s*\?\s*'github'\s*:\s*'gitlab'/.test(platSrc), '五、平台通道按 gh / glab 分别报服务名（GitHub 冷却不挡 glab）', '')
+    // #1007 复核：三条出站通道拿名额时都要报服务名，GitHub 的通路故障才不会挡住 GitLab、Forgejo 与 git。
+    // #1875 起调用点不再各写一条三元式，统一问 outboundInvocationOf；这里量判定本身与两处接线。
+    check(/service:\s*deOut\.service/.test(platSrc) && /outboundInvocationOf/.test(platSrc), '五、平台通道按 gh / glab / fj 分别报服务名（GitHub 冷却不挡另外两条 CLI）', '')
     const gitExecSrc = fs.readFileSync(path.join(ROOT, 'src/refresh/rooms/host/git-execution.ts'), 'utf8')
-    check(/service:\s*xpIsGh\s*\?\s*'github'\s*:\s*'gitlab'/.test(gitExecSrc), '五、自建操作上下文的 execProc 按 gh / glab 分别报服务名（GitHub 冷却不挡 glab）', '')
+    check(/service:\s*xpOut\.service/.test(gitExecSrc) && /outboundInvocationOf/.test(gitExecSrc), '五、自建操作上下文的 execProc 按 gh / glab / fj 分别报服务名（GitHub 冷却不挡另外两条 CLI）', '')
+    const svcOf = (cmd: string): string => tiers.outboundInvocationOf(cmd, ['--version']).service
+    check(svcOf('gh') === 'github' && svcOf('glab') === 'gitlab' && svcOf('fj') === 'forgejo' && svcOf('git') === '', '五、服务名判定把 gh / glab / fj 与本地 git 分成四档', [svcOf('gh'), svcOf('glab'), svcOf('fj'), svcOf('git')].join(' / '))
     check(/waitMs:\s*xpIsGh\s*\?\s*queueTimeoutForTier/.test(gitExecSrc), '五、execProc 把 gh 的排队预算递给闸（glab 不设上限）', '')
     const vcSrc = fs.readFileSync(path.join(ROOT, 'src/host/versionControl.ts'), 'utf8')
     check(/withGhLane\(\{[^}]*service:\s*'git'/.test(vcSrc), '五、本地 git 命令拿名额时报 service=git（GitHub 冷却不挡 git）', '')

@@ -35,8 +35,8 @@
  *    这样「没有发现矛盾」永远不等于「没有去看」——与三态同一条原则：宁可说没查清，不说查清了没有。
  *  - **一份规则**：三层优先级（`EVIDENCE_PRIORITY`）、多房裁剪顺序（`MULTI_CLAIM_ORDER`）、
  *    失败档位各只有一处声明；`decidePure` 也走同一条合成规则，不再另写一套判断。
- *  - **明文裁剪顺序**：多个后端同时认领时按 `MULTI_CLAIM_ORDER`（GitHub > Markdown > GitLab）
- *    取第一个。今天这个顺序是装配顺序（src/host/platformChannel.js 的 github → markdown → gitlab）
+ *  - **明文裁剪顺序**：多个后端同时认领时按 `MULTI_CLAIM_ORDER`（GitHub > Markdown > GitLab > Forgejo）
+ *    取第一个。今天这个顺序是装配顺序（src/host/platformChannel.js 的 github → markdown → gitlab → forgejo）
  *    碰巧给的，这里升成明文规则，由 tests/verify-detection-evidence.ts 钉住，免得以后有人调装配
  *    顺序就悄悄改掉了判定。声明文件里写多行标题时的互斥顺序不归这里管，仍由 parseIssueTracker
  *    那套（GitLab > Markdown > GitHub）说了算：三个顺序管三件事，各有各的名字，不互相借。
@@ -322,7 +322,7 @@ export interface DecidePureInput {
  * 名单里没有的房间排在这三个之后（保持它们自己的相对次序）。这条顺序由
  * tests/verify-detection-evidence.ts 钉住，改这里必须同时改那条门禁。
  */
-export const MULTI_CLAIM_ORDER: readonly string[] = ['github', 'markdown', 'gitlab'];
+export const MULTI_CLAIM_ORDER: readonly string[] = ['github', 'markdown', 'gitlab', 'forgejo'];
 
 /* ══════════════════════════════════════════════════════════════════════════════
  * 三、小工具

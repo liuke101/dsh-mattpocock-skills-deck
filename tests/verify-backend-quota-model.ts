@@ -7,7 +7,7 @@
 // 这份门禁守四件事：
 //   ① 旧文件与其转译产物真的不在了（退役不是「不再引用」而是「删掉」）；
 //   ② 口径只有四个取值，契约里没有写死任何额度数值；
-//   ③ 三个内置后端的声明与契约对齐（GitHub 两桶、GitLab 只计请求、Markdown 离网）；
+//   ③ 四个内置后端的声明与契约对齐（GitHub 两桶、GitLab 与 Forgejo 只计请求、Markdown 离网）；
 //   ④ 账本按口径建桶、记账按口径换算——同一笔花费喂给三种口径，结论必须不同。
 const fs = require('fs')
 const path = require('path')
@@ -37,7 +37,7 @@ async function main() {
   check(!/\b5000\b/.test(contractText) && !/\b1750\b/.test(contractText) && !/\b1225\b/.test(contractText),
     '契约文件里没有写死任何额度数值（5000 / 1750 / 1225 都不出现）：额度只能来自现场读数')
 
-  // ③ 三个内置后端各自声明一份口径，且与契约的四格齐全（kind / countsRequests / countsPoints / independentBuckets）。
+  // ③ 四个内置后端各自声明一份口径，且与契约的四格齐全（kind / countsRequests / countsPoints / independentBuckets）。
   const builtins = await import(pathToFileURL(path.join(ROOT, 'src', 'tracker', 'registry', 'builtins.ts')).href)
   const mods = await builtins.loadBuiltinBackendModules()
   const budgetOf = (id: string): any => {
@@ -46,13 +46,15 @@ async function main() {
   }
   const wellFormed = (b: any): boolean => !!b && kinds.indexOf(b.kind) >= 0 &&
     typeof b.countsRequests === 'boolean' && typeof b.countsPoints === 'boolean' && typeof b.independentBuckets === 'boolean'
-  const gh = budgetOf('github'); const gl = budgetOf('gitlab'); const md = budgetOf('markdown')
+  const gh = budgetOf('github'); const gl = budgetOf('gitlab'); const md = budgetOf('markdown'); const fj = budgetOf('forgejo')
   check(wellFormed(gh) && gh.kind === 'two-buckets' && gh.countsRequests && gh.countsPoints && gh.independentBuckets,
     'GitHub 声明两个互相独立的桶（数请求、数点数，两桶独立）：' + JSON.stringify(gh))
   check(wellFormed(gl) && gl.kind === 'requests-only' && gl.countsRequests && !gl.countsPoints && !gl.independentBuckets,
     'GitLab 声明只计请求数、不数点数、没有第二桶：' + JSON.stringify(gl))
   check(wellFormed(md) && md.kind === 'off-network' && !md.countsRequests && !md.countsPoints,
     '本地 Markdown 声明离网、不记请求数也不记点数：' + JSON.stringify(md))
+  check(wellFormed(fj) && fj.kind === 'requests-only' && fj.countsRequests && !fj.countsPoints && !fj.independentBuckets,
+    'Forgejo 声明只计请求数、不数点数、没有第二桶：' + JSON.stringify(fj))
   check(mods.every((m: any) => wellFormed(m.budget)),
     '内置后端每一个都在模块上交了完整的口径声明（缺了注册表会当场拒绝）')
 

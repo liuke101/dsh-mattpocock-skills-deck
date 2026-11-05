@@ -86,6 +86,65 @@ export function isWriteGhArgs(args: unknown): boolean {
   return false
 }
 
+/** `fj issue` 里的写动词：与房间实际发出的命令逐条对应。 */
+const FJ_ISSUE_WRITE_VERBS = new Set(['create', 'edit', 'close', 'comment', 'assign', 'unassign'])
+
+/**
+ * `fj` 的写操作判断（Forgejo 房）。
+ *
+ * 房间实际会起的命令只有这几族（见 `src/tracker/rooms/forgejo/*`）：写票、评论、指派、
+ * 依赖/阻塞的增删、标签颜色。没有列进来的族按读处理，与 isWriteGhArgs 对未知族的默认口径一致：
+ * 拿不准时宁可少占一个写名额，也不把只读调用按写档限速。
+ *
+ * `fj` 的全局参数 `-H <host>` 与 `-C <cwd>` 排在子命令之前，判断前要先跳过它们。
+ */
+export function isWriteFjArgs(args: unknown): boolean {
+  const parts = partsOf(args)
+  let i = 0
+  while (i < parts.length && (parts[i] === '-H' || parts[i] === '--host' || parts[i] === '-C' || parts[i] === '--cwd')) i += 2
+  const family = String(parts[i] || '')
+  const verb = String(parts[i + 1] || '')
+  if (family === 'issue') {
+    // 依赖与阻塞是 `issue depend add` / `issue block remove` 这样的三层形状，第三格才是动词。
+    if (verb === 'depend' || verb === 'block') return parts[i + 2] === 'add' || parts[i + 2] === 'remove'
+    return FJ_ISSUE_WRITE_VERBS.has(verb)
+  }
+  // 标签颜色：`fj repo labels <owner/name> edit <id> -c <颜色>`，第四格才是动词。
+  if (family === 'repo' && verb === 'labels') return parts[i + 3] === 'edit' || parts[i + 3] === 'create' || parts[i + 3] === 'delete'
+  return false
+}
+
+/** `fj` 命令的短标签：先摘掉 `-H <host>` / `-C <cwd>` 这两对全局参数，再按 gh 那套族名+动词拼。 */
+export function fjCommandLabel(args: unknown): string {
+  const parts = partsOf(args)
+  let i = 0
+  while (i + 1 < parts.length && (parts[i] === '-H' || parts[i] === '--host' || parts[i] === '-C' || parts[i] === '--cwd')) i += 2
+  return ghCommandLabel(parts.slice(i))
+}
+
+/** 一次出站的分类结果：服务名（空串 = 不入准入闸）、读/写桶、日志短标签。 */
+export type OutboundService = 'github' | 'gitlab' | 'forgejo' | ''
+export interface OutboundInvocation {
+  service: OutboundService
+  bucket: 'read' | 'write'
+  label: string
+}
+
+/**
+ * 按程序名与参数认出这次出站走哪条路（#1875 起 gh / glab / fj 三条）。
+ *
+ * 为什么把三家的判断收在一处：宿主侧两个 exec 出口各写一份同样的三元判断，加 fj 时就会漏掉
+ * 其中一处（漏掉的那处会把 Forgejo 的调用当成「不是出站」，连名额都不拿）。这里返回统一的
+ * 分类，两个出口只读结果。
+ */
+export function outboundInvocationOf(cmd: unknown, args: unknown): OutboundInvocation {
+  const base = String(cmd == null ? '' : cmd).split(/[\\/]/).pop() || ''
+  if (/^gh(\.exe)?$/i.test(base)) return { service: 'github', bucket: isWriteGhArgs(args) ? 'write' : 'read', label: ghCommandLabel(args) }
+  if (/^glab(\.exe)?$/i.test(base)) return { service: 'gitlab', bucket: 'read', label: '' }
+  if (/^fj(\.exe)?$/i.test(base)) return { service: 'forgejo', bucket: isWriteFjArgs(args) ? 'write' : 'read', label: fjCommandLabel(args) }
+  return { service: '', bucket: 'read', label: '' }
+}
+
 /** 探活动词：查登录态与版本号，走探活档。类型说明：同写操作判断，收未知参数数组。 */
 export function isProbeGhArgs(args: unknown): boolean {
   const parts = partsOf(args)

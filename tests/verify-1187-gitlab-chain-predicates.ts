@@ -187,7 +187,7 @@ async function main() {
     let m = re.exec(src)
     while (m) { registered.add(m[1]); m = re.exec(src) }
     must(registered.size >= 8, '从求值文件里至少认出 8 条注册（解析失效时本节其余断言会假绿）', '只认出 ' + registered.size + ' 条')
-    const backends = ['github', 'markdown', 'gitlab']
+    const backends = ['github', 'markdown', 'gitlab', 'forgejo']
     for (const backendId of backends) {
       const items = mods.catMod.catalogFor(backendId).filter(function (c) { return c.scope === 'backend' })
       must(items.length > 0, backendId + ' 的后端目录非空', '空目录')
@@ -202,6 +202,8 @@ async function main() {
     }
     must(registered.has('preflight:glabAuth'), '「glab 已登录」那一项的键 preflight:glabAuth 已注册', '没注册')
     must(registered.has('backend:gitlab:repoAccess'), '「GitLab 仓库可达」那一项的键 backend:gitlab:repoAccess 已注册', '没注册')
+    must(registered.has('preflight:fjAuth'), '「fj 已登录」那一项的键 preflight:fjAuth 已注册', '没注册')
+    must(registered.has('backend:forgejo:repoAccess'), '「Forgejo 仓库可达」那一项的键 backend:forgejo:repoAccess 已注册', '没注册')
   }
 
   title('② 两个判定函数：网络故障不误报未登录，认不出仓库不说可达')

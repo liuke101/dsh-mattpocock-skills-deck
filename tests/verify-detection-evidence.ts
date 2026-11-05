@@ -12,7 +12,7 @@
  *    这正是本次讨论发现的缺陷：从前「没看成 / 没问成」与「问过没人认领」会写成同一句话。
  *  C 一次读取、一份结论：声明文件只读一次，且与探测器、工具壳共用 parseIssueTracker
  *    （出口原来自带那套只看标题、优先级还相反，已删）。
- *  D 多命中按明文顺序裁剪：MULTI_CLAIM_ORDER（GitHub > Markdown > GitLab）与装配顺序一致。
+ *  D 多命中按明文顺序裁剪：MULTI_CLAIM_ORDER（GitHub > Markdown > GitLab > Forgejo）与装配顺序一致。
  *  E 证据矛盾带出来：「我选的」（工作区文件）与「项目里写的」（声明文件）不一致时，结论仍按顺序取，
  *    但矛盾进结果与日志，不静默吞掉。
  *  F 日志分层：平时一条结论（常驻事件 detection.detect，含来源、三态、档位、覆盖度、耗时、矛盾）；
@@ -323,14 +323,14 @@ async function main(): Promise<void> {
       JSON.stringify({ outlet: r4b.backendId, state: r4b.state, gap: r4b.gap ? r4b.gap.id : null }))
   }
 
-  title('D 多命中按明文顺序裁剪（GitHub > Markdown > GitLab）')
+  title('D 多命中按明文顺序裁剪（GitHub > Markdown > GitLab > Forgejo）')
   {
-    ok(JSON.stringify(MULTI_CLAIM_ORDER) === JSON.stringify(['github', 'markdown', 'gitlab']),
-      '明文顺序常量就是 GitHub > Markdown > GitLab', JSON.stringify(MULTI_CLAIM_ORDER))
-    ok(JSON.stringify(orderClaims(['gitlab', 'markdown', 'github'])) === JSON.stringify(['github', 'markdown', 'gitlab']),
+    ok(JSON.stringify(MULTI_CLAIM_ORDER) === JSON.stringify(['github', 'markdown', 'gitlab', 'forgejo']),
+      '明文顺序常量就是 GitHub > Markdown > GitLab > Forgejo', JSON.stringify(MULTI_CLAIM_ORDER))
+    ok(JSON.stringify(orderClaims(['forgejo', 'gitlab', 'markdown', 'github'])) === JSON.stringify(['github', 'markdown', 'gitlab', 'forgejo']),
       '倒着给的名单按明文顺序排好')
-    ok(JSON.stringify(orderClaims(['gitlab', 'scratch', 'github'])) === JSON.stringify(['github', 'gitlab', 'scratch']),
-      '名单里没有的房间排在三个之后、保持自己的相对次序')
+    ok(JSON.stringify(orderClaims(['forgejo', 'gitlab', 'scratch', 'github'])) === JSON.stringify(['github', 'gitlab', 'forgejo', 'scratch']),
+      '名单里没有的房间排在四个之后、保持自己的相对次序')
 
     const f = fakeFs({})
     const r = await decideBackend(CWD, {
@@ -347,8 +347,8 @@ async function main(): Promise<void> {
     // 不是看 import 文本出现的位置——两件事今天碰巧同序，改起来却可以不一致（#1048 复核指出上一版只看了位置）。
     const assembly = readAssembly()
     const order = registerOrderOf(assembly)
-    ok(JSON.stringify(order) === JSON.stringify(['github', 'markdown', 'gitlab']),
-      '装配处三个后端是按 github → markdown → gitlab 注册的（读真的注册调用）', JSON.stringify(order))
+    ok(JSON.stringify(order) === JSON.stringify(['github', 'markdown', 'gitlab', 'forgejo']),
+      '装配处四个后端是按 github → markdown → gitlab → forgejo 注册的（读真的注册调用）', JSON.stringify(order))
     ok(JSON.stringify(order) === JSON.stringify(MULTI_CLAIM_ORDER),
       '装配顺序与明文裁剪顺序逐位一致：改一处就得同时改另一处',
       JSON.stringify({ 装配: order, 明文: MULTI_CLAIM_ORDER }))
