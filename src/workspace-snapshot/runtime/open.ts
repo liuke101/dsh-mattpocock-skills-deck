@@ -55,7 +55,7 @@ import { logSnapshot, shortHash } from './log.js'
 import { defaultSnapshotDbPath, resolveSnapshotWorkspaceRoot } from './paths.js'
 
 /** 允许的后端；运行时再挡一道，防止 JS 调用方传进不认识的字符串。 */
-const SNAPSHOT_BACKENDS = new Set(['github', 'gitlab', 'markdown'])
+const SNAPSHOT_BACKENDS = new Set(['github', 'gitlab', 'markdown', 'forgejo'])
 
 /**
  * 打开工作区快照库。返回的 handle 是同步 API（理由见 contract/types.ts 的注释）。

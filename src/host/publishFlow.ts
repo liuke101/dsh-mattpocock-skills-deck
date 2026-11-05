@@ -263,10 +263,11 @@ export function createPublishFlow(deps: Deps) {
     if (rk3 && repoKeys[rk3] !== undefined) delete repoKeys[rk3]
     if (rk3 && repoRoots[rk3] !== undefined) delete repoRoots[rk3]
     // URL 以房间给的那份为准；拿不到 owner 时沿用旧口径给空串（没有 owner 拼出来的地址是错的）。
-    // #1191：兜底按会话后端选域（GitLab 房走 gitlab.com），房间正常回 url 时这一格不触发。
+    // #1191：兜底按会话后端选域（GitLab 房走 gitlab.com）；Forgejo 多半是自建实例，域名猜不出来，
+    // 兜底就留空而不是冒充 github.com —— 房间正常回 url 时这一格不触发。
     const backendId = String((opened as { backendId?: unknown }).backendId || '')
-    const fallbackBase = backendId === 'gitlab' ? 'https://gitlab.com/' : 'https://github.com/'
-    const repoUrl = owner ? (String(ref.url || '') || (fallbackBase + owner + '/' + repoName)) : ''
+    const fallbackBase = backendId === 'gitlab' ? 'https://gitlab.com/' : (backendId === 'forgejo' ? '' : 'https://github.com/')
+    const repoUrl = owner ? (String(ref.url || '') || (fallbackBase ? (fallbackBase + owner + '/' + repoName) : '')) : ''
     return { ok: true, repo: { owner: owner, name: repoName }, repoUrl: repoUrl }
   }
 

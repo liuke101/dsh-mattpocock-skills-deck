@@ -49,13 +49,14 @@ export const WRITE_BUCKET_MAX = TUNING.writeBucketMax ?? 16
 
 // 准入桶：读与写两只桶，配额与统计都按桶隔离，跨桶不抢名额。
 type GhBucket = 'read' | 'write'
-// 通路归属：冷却按「服务 + 读写档」分开记。今天只有 github 这一条会设冷却；gitlab 与 git
+// 通路归属：冷却按「服务 + 读写档」分开记。今天只有 github 这一条会设冷却；gitlab、forgejo 与 git
 // 只是共用同一套名额（名副其实的「同一道闸、不同的路」），它们的调用不该被 GitHub 的冷却挡住。
-type GhService = 'github' | 'gitlab' | 'git'
-// 服务名归一：没给就当 github（现有绝大多数调用是 gh）；glab 与 git 由调用方显式传。
+type GhService = 'github' | 'gitlab' | 'forgejo' | 'git'
+// 服务名归一：没给就当 github（现有绝大多数调用是 gh）；glab、fj 与 git 由调用方显式传。
 function normService(s: unknown): GhService {
   const v = String(s == null ? '' : s).trim().toLowerCase()
-  return v === 'gitlab' ? 'gitlab' : (v === 'git' ? 'git' : 'github')
+  if (v === 'gitlab' || v === 'git' || v === 'forgejo') return v
+  return 'github'
 }
 // 排队预算的计时器接口（#1570）：生产用全局 setTimeout / clearTimeout；门禁可注入假计时器，
 // 在同一只闸上复现「到点」「到点后又放回名额」这类时间点精确的场景。注入只给测试用。

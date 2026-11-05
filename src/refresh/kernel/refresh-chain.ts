@@ -36,8 +36,8 @@
 // 留存量的两条线（30 天、2MB）在 chain-prune.ts：那里是数字的唯一住处；链的裁剪实现在
 // 旧链退役前由 src/host/refresh/workRoute.ts 用本文件的键与形状工具（#1271 已删；共享层文件之间不许互相引用）。
 
-/** 三个后端的字面（判据里要按后端分开：不同后端的票 key 不通用）。 */
-export const CHAIN_BACKENDS: readonly string[] = ['github', 'gitlab', 'markdown']
+/** 四个后端的字面（判据里要按后端分开：不同后端的票 key 不通用）。 */
+export const CHAIN_BACKENDS: readonly string[] = ['github', 'gitlab', 'markdown', 'forgejo']
 
 /**
  * 动作类别（闭集合）。只回答「他在对这张票做什么」，一格一个词，不许出现自由文本
@@ -55,7 +55,7 @@ export const CHAIN_REASONS: Readonly<Record<string, string>> = {
   'chain.unknown-source': '说不清这条线索是从哪来的（不是工具参数、命令行或票文件路径）：不记',
   'chain.bad-shard': '这个会话的散列算不出来（会话 id 是空的）：不记，免得把不同会话的票记进同一格',
   'chain.bad-root': '工作区根散列不像散列（长度或字符不对）：不记，宁可漏一次也不把原文写进键里',
-  'chain.bad-backend': '后端名不在三个后端里：不记，不同后端的票 key 不通用',
+  'chain.bad-backend': '后端名不在四个内置后端里：不记，不同后端的票 key 不通用',
 }
 
 /** 一句话解释一个原因代号；认不出就原样退回。 */
@@ -115,7 +115,7 @@ export function isFingerprintLike(v: unknown): boolean {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * 后端名归一：小写、去空白，只认三个后端。
+ * 后端名归一：小写、去空白，只认四个内置后端。
  * 为什么认不出就不记：票 key 不跨后端通用（github 是数字串、markdown 是编号、gitlab 是 iid），
  * 把后端名写成别的字面就会让同一个键在两张表里指两张不同的票。
  */

@@ -167,9 +167,9 @@ export function createHandoffClaim(deps: HandoffClaimDeps): any {
     if (repoRef.backend === 'github' && String(repoRef.refId || '').indexOf('/') < 0) {
       return { ok: false, error: { kind: 'env', error: '无法解析 owner/repo（写会话没有给出仓库身份）' } }
     }
-    // 票号按后端取：GitHub 的票号就是纯数字（旧实现两位补零只服务于本地 Markdown 房的文件名约定，
-    //   对 GitHub 传 '07' 会查不到票）；其它后端沿用两位补零，不要因为这次统一口径把它们改坏。
-    const key: string = repoRef.backend === 'github' ? String(n) : String(n).padStart(2, '0')
+    // 票号按后端取：GitHub 与 Forgejo 的票号就是纯数字（两位补零只服务于本地 Markdown 房的文件名约定，
+    //   对它们传 '07' 会查不到票）；其余后端沿用两位补零，不要因为这次统一口径把它们改坏。
+    const key: string = (repoRef.backend === 'github' || repoRef.backend === 'forgejo') ? String(n) : String(n).padStart(2, '0')
     // 面板展示用的名字默认 'me'（旧口径）；真正发给房间的认领目标另算一份：
     //   gh 认 @me 这个写法，直接传 'me' 会被当成一个不存在的登录名；别的后端沿用 'me'。
     let assignedTo: string = 'me'
@@ -212,8 +212,10 @@ export function createHandoffClaim(deps: HandoffClaimDeps): any {
     }
     // 认领成功 → 只清自己根（#696），让面板下次快照拉到新的指派人。
     setCache({ ts: 0, snapshot: null, error: null, cwd: cwd })
-    // 链接只在 GitHub 上给（旧口径）；别的后端沿用空串。
-    const url: string = repoRef.backend === 'github' ? ('https://github.com/' + String(repoRef.refId) + '/issues/' + String(n)) : ''
+    // GitHub 按固定域名拼；Forgejo 多半是自建实例，用会话交来的仓库地址拼；其余后端沿用空串。
+    let url: string = ''
+    if (repoRef.backend === 'github') url = 'https://github.com/' + String(repoRef.refId) + '/issues/' + String(n)
+    else if (repoRef.backend === 'forgejo' && repoRef.url) url = String(repoRef.url).replace(/\/+$/, '') + '/issues/' + String(n)
     return { ok: true, number: n, assignedTo: assignedTo, url: url }
   }
 

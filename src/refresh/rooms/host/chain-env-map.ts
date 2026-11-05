@@ -258,6 +258,67 @@ export function glabAuthVerdict(pr: ChainEnvProbeReply, zh: boolean): ChainPredi
   return { status: 'pending', detail: zh ? '读会话还没接上，暂时无法确认登录状态' : 'read session not available; login state unknown' }
 }
 
+// ── Forgejo 的两行：与 GitLab 同构，只换后端与话术 ───────────────────────────────────
+/**
+ * 「Forgejo 仓库可达」这一项的判定（第三关）。
+ *
+ * 与 GitLab 那行同一套口径：只有「确定仓库不存在或无权限」（kind=not-found）才判 fail；
+ * 未登录、网络异常、读会话没接上，一律 pending。本地认不出仓库地址时房间会跳过第三关
+ * 直接回成功，这里也不能顺水推舟说「可达」，按 pending 说明原因。
+ */
+export function fjRepoAccessVerdict(pr: ChainEnvProbeReply, zh: boolean): ChainPredicateVerdict {
+  if (pr.stage === 'pass') {
+    if (pr.refId) return { status: 'pass', detail: zh ? 'Forgejo 接口访问正常' : 'Forgejo api 200' }
+    return { status: 'pending', detail: zh ? '暂时无法确认仓库可访问（本地认不出 Forgejo 仓库地址）' : 'repo ref unknown locally; Forgejo repo reachability unknown' }
+  }
+  if (pr.stage === 'gh') return { status: 'pending', detail: envPendingDetail(pr, zh, 'fj', 'repo') }
+  if (pr.stage === 'repo') {
+    if (pr.kind === 'not-found') return { status: 'fail', detail: zh ? 'Forgejo 上访问不到该仓库（可能还没创建，或你没有权限）' : 'Forgejo repo not found (may not exist or no access)' }
+    return { status: 'pending', detail: zh ? '暂时无法确认仓库可访问（网络或登录态未知）' : 'Forgejo repo reachability unknown (network or auth unknown)' }
+  }
+  if (pr.stage === 'auth') return { status: 'pending', detail: zh ? '暂时无法确认仓库可访问（网络或登录态未知）' : 'Forgejo repo reachability unknown (network or auth unknown)' }
+  return { status: 'pending', detail: zh ? '读会话还没接上，暂时无法确认仓库可访问' : 'read session not available; repo reachability unknown' }
+}
+
+/**
+ * 「fj 已登录」这一项的判定（前两关）。
+ *
+ * 与 GitLab 那行同一套口径：只有明确「未登录」（kind=auth）才判 fail，网络抖动归 pending。
+ * 档位由 Forgejo 房间的预检按 `fj auth list` 与 `fj whoami` 的原文分出，这里只按档位分派。
+ */
+export function fjAuthVerdict(pr: ChainEnvProbeReply, zh: boolean): ChainPredicateVerdict {
+  if (pr.stage === 'pass') return { status: 'pass', detail: zh ? '已登录' : 'Logged in' }
+  if (pr.stage === 'gh') return { status: 'pending', detail: envPendingDetail(pr, zh, 'fj', 'login') }
+  if (pr.stage === 'repo') return { status: 'pass', detail: zh ? '已登录（仓库可达性由下一项判断）' : 'logged in (repo reachability is checked by the next item)' }
+  if (pr.stage === 'auth') {
+    const kind = pr.kind || 'exit'
+    if (kind === 'network') return { status: 'pending', detail: zh ? '网络异常，暂时无法确认 fj 登录状态' : 'fj login probe transport failure; login state unknown' }
+    if (kind === 'auth') return { status: 'fail', detail: zh ? 'fj 登录状态已失效（重新执行 fj auth login）' : 'fj credential invalid or not logged in: re-authenticate (fj auth login)' }
+    return { status: 'pending', detail: zh ? '暂时无法确认登录状态（' + kind + '）' : 'fj login probe failed (' + kind + '); login state unknown' }
+  }
+  return { status: 'pending', detail: zh ? '读会话还没接上，暂时无法确认登录状态' : 'read session not available; login state unknown' }
+}
+
+/**
+ * Forgejo 两条链谓词的执行函数（#1875）。
+ *
+ * 为什么要收在这里：注册处只该做「按 id 挂上去」这一件事；把「问一次环境 → 按档位分派 →
+ * 异常落 pending」这段同样的壳写两遍，注册表那一侧会多出十几行噪音，而且两条谓词的话术
+ * 迟早会各改各的。两条谓词共用同一个 envProbe，所以一次求值只问一次环境。
+ */
+/** 一条链谓词：收检查项与语言，交判定。 */
+type FjPredicate = (check: unknown, pctx: { lang?: string } | null | undefined) => Promise<ChainPredicateVerdict>
+
+export function fjChainPredicates(probe: ChainEnvProbe): { auth: FjPredicate; repoAccess: FjPredicate } {
+  const run = function (verdict: (pr: ChainEnvProbeReply, zh: boolean) => ChainPredicateVerdict) {
+    return async function (_check: unknown, pctx: { lang?: string } | null | undefined): Promise<ChainPredicateVerdict> {
+      try { return verdict(await probe.preflightOnce(), (pctx && pctx.lang) !== 'en') }
+      catch (e) { return { status: 'pending', detail: String((e && (e as CaughtError).message) || e) } }
+    }
+  }
+  return { auth: run(fjAuthVerdict), repoAccess: run(fjRepoAccessVerdict) }
+}
+
 // ── 一次求值只问一次环境的那只探针（#1444）────────────────────────────────────────
 /** 探针可选设置：这次求值问哪个后端的环境（缺省 github，老调用方的行为不变）。 */
 type ChainEnvProbeOptions = { backendId?: string }
@@ -365,7 +426,7 @@ export function probeChainEnv(deps: ChainEnvProbeDeps, probeCwd: string, opts?: 
       const refId = await repoRefOnce()
       const r = await callSession(function (session, ctx) {
         // 与 preflight 同一份上下文（见 opCtxOf 的注释）：取登录名同样要经 opCtx 起 gh。
-        return session.getCurrentUser({ backend: 'github', refId: refId, name: refId, url: '' }, opCtxOf(ctx, probeCwd))
+        return session.getCurrentUser({ backend: backend, refId: refId, name: refId, url: '' }, opCtxOf(ctx, probeCwd))
       })
       if (!r.ok) return { ok: false }
       const res = r.value

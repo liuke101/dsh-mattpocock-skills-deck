@@ -16,7 +16,7 @@
 // 需要 `gh repo view` 的那一级属于出站，已经从这里删掉；它改由会话的 getRepoKey 能力在开会话之后
 // 走 Tracker 操作管线（先裁决、再按后端口径记账），见 src/refresh/rooms/host/session-opener.ts。
 // 所以「选哪个后端」这一层永远不会起 gh，也不会花额度。
-import { timeoutForGhArgs, queueTimeoutForTier, isWriteGhArgs, ghArgsOf, ghCommandLabel, ghOutboundEntryOf, noteGhGraphqlCorrection, outboundCooldownOf, ghCooldownReply, ghQueueTimeoutReply, type OutboundGateLike } from '../../../tracker/kernel/outbound-tiers.js'
+import { timeoutForGhArgs, queueTimeoutForTier, outboundInvocationOf, ghArgsOf, ghOutboundEntryOf, noteGhGraphqlCorrection, outboundCooldownOf, ghCooldownReply, ghQueueTimeoutReply, type OutboundGateLike } from '../../../tracker/kernel/outbound-tiers.js'
 import { getGhLane } from './outbound-admission.js'
 import { createGhExecution } from './gh-execution.js'
 // #1392：实例销毁时一条外部命令的收尾（还名额、终止子进程、接住 done、建计时器守卫）见 ../shared/command-cleanup/。
@@ -191,25 +191,24 @@ export function createRepoKeys(deps: RepoKeysDeps) {
     async function execProc(argv: string[], cwd?: string, via?: string): Promise<ProcResult> {
       // 起始时刻只在开关打开时才取：关着时这一行读一个布尔就结束，连时钟都不读，后面两行自然也不落。
       const _execT0 = (logCtx && logCtx.isEnabled('debug')) ? Date.now() : 0
-      // #963 出站同一口径：gh / glab 进准入（git 是本地命令不进）；gh 默认超时按读写探活分档。
+      // #963 出站同一口径：gh / glab / fj 进准入（git 是本地命令不进）；gh 默认超时按读写探活分档。
       const xpProg = progName(argv && argv[0])
-      const xpIsGh = /^gh(\.exe)?$/i.test(xpProg)
-      const xpIsGlab = /^glab(\.exe)?$/i.test(xpProg)
-      const xpIsOutbound = xpIsGh || xpIsGlab
       const xpArgs = Array.isArray(argv) ? argv.slice(1) : []
-      const xpBucket = (xpIsGh && isWriteGhArgs(xpArgs)) ? 'write' : 'read'
+      const xpOut = outboundInvocationOf(xpProg, xpArgs)
+      const xpIsGh = xpOut.service === 'github'
+      const xpIsOutbound = xpOut.service !== ''
       // 出站才拿名额（不传取消信号，到点闸抛排队超时）；git 本地命令直行。
-      // #1007 复核：gh 与 glab 共用同一套名额，但通路各是一条 —— 拿名额时带上服务名，
-      // 才不会让 GitHub 的冷却把 glab 的调用一起挡住（git 本地命令不进口这道闸）。
-      // #1570：gh 的排队预算递给闸；glab 沿用旧行为（不设排队上限），避免顺手改 GitLab 分档。
-      const xpCmd = xpIsGh ? ghCommandLabel(xpArgs) : xpProg
+      // #1007 复核：gh / glab / fj 共用同一套名额，但通路各是一条 —— 拿名额时带上服务名，
+      // 才不会让 GitHub 的冷却把别家的调用一起挡住（git 本地命令不进口这道闸）。
+      // #1570：gh 的排队预算递给闸；glab 与 fj 沿用旧行为（不设排队上限），避免顺手改它们的分档。
+      const xpCmd = xpIsGh ? xpOut.label : xpProg
       let xpRelease = null
       // #1392：归还包成幂等，下面每条退出路径都调 xpReleaseSlot()；git 本地命令没有名额，它是空转。
       if (xpIsOutbound) {
-        try { xpRelease = await getGhLane(logCtx).acquire({ bucket: xpBucket, service: xpIsGh ? 'github' : 'gitlab', cmd: xpIsGh ? xpCmd : undefined, waitMs: xpIsGh ? queueTimeoutForTier(timeoutForGhArgs(xpArgs)) : undefined }) }
+        try { xpRelease = await getGhLane(logCtx).acquire({ bucket: xpOut.bucket, service: xpOut.service || undefined, cmd: xpIsGh ? xpCmd : undefined, waitMs: xpIsGh ? queueTimeoutForTier(timeoutForGhArgs(xpArgs)) : undefined }) }
         catch (eAcq) {
           // 到点还没拿到名额（一次没起进程）：按可重试网络失败回人话，不与「取消排队」混成一条。
-          const xpQueueText = ghQueueTimeoutReply(eAcq, xpIsGh ? 'gh' : 'glab')
+          const xpQueueText = ghQueueTimeoutReply(eAcq, xpIsGh ? 'gh' : (xpOut.service === 'gitlab' ? 'glab' : 'fj'))
           if (xpQueueText) return { ok: false, error: xpQueueText }
           // 冷却窗口里的拒绝同理：说清是通路不通，别让调用方以为命令自己慢。
           if (outboundCooldownOf(eAcq)) return { ok: false, error: ghCooldownReply(eAcq, xpCmd) }

@@ -160,14 +160,14 @@ export function createSessionSnapshot(deps: SnapshotDeps) {
             const identified = await resolveRepoRefForCwd({ cwd, backendId, describe: reg.describe, openSession })
             if (identified) repoRef = identified
           }
-          // #1867/#1868：GitLab 与本地 Markdown 也走同一套库——先读库铺首屏，库里没数据才去后端取，
+          // #1867/#1868：GitLab、Forgejo 与本地 Markdown 也走同一套库——先读库铺首屏，库里没数据才去后端取，
           // 取回来的行按批写库。开库要求「真的答出了仓库身份」：describe 或会话给的都算，下面那句拿
-          // cwd 拼的兜底不算。两家的身份长什么样不同，所以判法不同：GitLab 的 refId 是 owner/project，
-          // 与工作目录不同；本地 Markdown 的身份就是工作区目录本身，refId 等于 cwd 正是它的正确身份。
+          // cwd 拼的兜底不算。各家的身份长什么样不同，所以判法不同：GitLab 与 Forgejo 的 refId 是
+          // owner/name，与工作目录不同；本地 Markdown 的身份就是工作区目录本身，refId 等于 cwd 正是它的正确身份。
           // 拿 cwd 冒充身份开库才会出事——那样开出来的键不对，下一次真正身份到达时会因身份不符整库重建。
-          const identityResolved = !!(repoRef && repoRef.refId && (backendId !== 'gitlab' || String(repoRef.refId) !== String(cwd)))
+          const identityResolved = !!(repoRef && repoRef.refId && ((backendId !== 'gitlab' && backendId !== 'forgejo') || String(repoRef.refId) !== String(cwd)))
           if (!repoRef) repoRef = { backend: backendId, refId: cwd, name: String(cwd).split(/[\\/]/).pop() || backendId, url: '' }
-          const libraryBackend = backendId === 'gitlab' || backendId === 'markdown'
+          const libraryBackend = backendId === 'gitlab' || backendId === 'markdown' || backendId === 'forgejo'
           const first = (libraryBackend && identityResolved) ? await firstScreenFromLibrary({ getSnapshotLibrary: getSnapshotLibrary, workspaceRoot: cwd, backend: backendId, repoIdentity: String((repoRef && repoRef.refId) || ''), repo: repoRef, force: !!(args && args.force) }) : null
           // #1870：库里有数据就只读库；库为空时才用工作副本兜底（再没有才联网重建）。
           // #1869：开库诊断（损坏重建、只读租约）随兜底回包一起交给界面，否则库坏了重建完，

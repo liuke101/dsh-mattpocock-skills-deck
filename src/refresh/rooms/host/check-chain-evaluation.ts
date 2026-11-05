@@ -5,7 +5,7 @@ import { refreshSourceOf } from '../../contract/trigger-classification.js'
 import { workspaceKeyOf } from '../../contract/workspace-keys.js'   // #724：链记账给闸的钥匙，与活跃集合同一把（从前传 cwd 原文 → 同一个工作区在闸里有两格）
 import { getChainRide } from './chain-coalescing.js'   // #964 小账本住共享层；#966 用进程单例，出站写路能记写
 import { PREDICATE_TIMEOUT_MS, GH_LOGIN_PREFETCH_MS, PREDICATE_LOG_SAMPLE_MS } from '../../../shared/time-config/src/values.js'   // #1215 时间参数住中央 YAML（predicateTimeoutMs / ghLoginPrefetchMs / predicateLogSampleMs），本文件只读不写
-import { createRepoIdentityEvidence, ghAuthVerdict, glabAuthVerdict, glabRepoAccessVerdict, probeChainEnv, repoAccessVerdict } from './chain-env-map.js'
+import { createRepoIdentityEvidence, fjChainPredicates, ghAuthVerdict, glabAuthVerdict, glabRepoAccessVerdict, probeChainEnv, repoAccessVerdict } from './chain-env-map.js'
 import type { OpenSessionReply, RepoIdentityEvidence } from './chain-env-map.js'
 // #1483：「判定 → 步骤行 / 快照」三件套搬到 chain-step-rows.ts，正常求值与缓存命中重算共用同一套口径；行为逐字保留。
 // 九个形状（判定表、步骤行、单段与拼接快照）也从那里取：两处各写一份时，形状一改就会漂移（审阅指出过）。
@@ -465,6 +465,10 @@ export function createDetectChain(deps: DetectChainDeps) {
             return glabRepoAccessVerdict(await envProbe.preflightOnce(), zh)
           } catch (e) { return { status: 'pending', detail: String((e && (e as CaughtError).message) || e) } }
         }) } catch (e) {}
+        // Forgejo 的两行与 GitLab 同构（目录项键 fj:authed → preflight:fjAuth、fj:repoAccess →
+        //   backend:forgejo:repoAccess）；不注册的话这两行永远是一句「predicate not registered」的 pending。
+        //   判定壳与话术都在 chain-env-map 的 fjChainPredicates 里，这里只按 id 挂。
+        try { const fj = fjChainPredicates(envProbe); registry.register('preflight:fjAuth', fj.auth); registry.register('backend:forgejo:repoAccess', fj.repoAccess) } catch (e) {}
         const kind = (args && args.kind) || 'all'
         const chainAndSnap = await genMod.resolveGenericChain(registry, ctx, kind)
         // #284 修订（对抗式审查 2026-08-28）：链上检查项【逐项独立求值】——
@@ -482,9 +486,9 @@ export function createDetectChain(deps: DetectChainDeps) {
             // 目录项直递转换函数：catalogFor 给的是目录的 CatalogItem，catalogItemToCheckItem
             // 要的是目录项输入形态（id/label/scope/check），两份都是与 chain-types 同源的本地形态，
             // 格子逐字对齐，直接递进去，不转类型也不改值（运行期原样递进去）。
-            // 目录只认这三个后端的表（check-catalog-dirs.ts 的 JSDoc 就是这么写的），别的 id 在表里没有格子；
+            // 目录只认这四张后端的表（check-catalog-dirs.ts 的 JSDoc 就是这么写的），别的 id 在表里没有格子；
             // 这里只是把「已经认出来是某个后端」收成表认的那几个，转的是类型、值原样递进去。
-            let items = (catDirs.catalogFor ? catDirs.catalogFor(backendId as 'github' | 'markdown' | 'gitlab') : []).filter(function(c){ return c.scope==='backend' }).map(function(ci){ return catViews.catalogItemToCheckItem ? catViews.catalogItemToCheckItem(ci) : null }).filter(Boolean) as CheckItem[]
+            let items = (catDirs.catalogFor ? catDirs.catalogFor(backendId as 'github' | 'markdown' | 'gitlab' | 'forgejo') : []).filter(function(c){ return c.scope==='backend' }).map(function(ci){ return catViews.catalogItemToCheckItem ? catViews.catalogItemToCheckItem(ci) : null }).filter(Boolean) as CheckItem[]
             // 修复契约（2026-08-28）：后端声明 fixes（hint + 修复动作）→ 按语言解析附到检查项 onFail——
             //   检查失败即有修复入口（注入指引/重查），UI 零派生只渲染分发；后端未声明 fixes 则保持默认（重查）。
             if (items.length) {

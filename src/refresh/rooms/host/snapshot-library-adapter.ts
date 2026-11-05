@@ -58,7 +58,7 @@ function unknownGroup<T>(reason: string | null | undefined, source = SOURCE_LIST
 }
 
 /**
- * 后端能力差异：这两个后端原生都没有「评审」与「合并信息」，GitLab 另外还没有「子票计数」。
+ * 后端能力差异：这三个远端/本地后端都不表达「评审」与「合并信息」，GitLab 另外还没有「子票计数」（Forgejo 有，走正文隐藏标记读）。
  *
  * 为什么必须在库里写成 unknown + not-applicable，而不是不写或写空值：
  *  - 不写 = 从没取过，界面只能说「不知道」；
@@ -71,7 +71,7 @@ function unknownGroup<T>(reason: string | null | undefined, source = SOURCE_LIST
  * 只补还没有表达过的组：将来真给出了合并时间或评审明细，真实的组会先生成，这里一个字节都不动。
  */
 function applyBackendCapabilityGaps(groups: IssueGroupsWrite, backend: string, source: string, operation: string, withReview: boolean): void {
-  if (backend !== 'gitlab' && backend !== 'markdown') return
+  if (backend !== 'gitlab' && backend !== 'markdown' && backend !== 'forgejo') return
   if (backend === 'gitlab' && groups.subIssues === undefined) groups.subIssues = unknownGroup('not-applicable', source, operation)
   if (groups.mergeInfo === undefined) groups.mergeInfo = unknownGroup('not-applicable', source, operation)
   if (withReview && groups.review === undefined) groups.review = unknownGroup('not-applicable', source, operation) as IssueGroupsWrite['review']

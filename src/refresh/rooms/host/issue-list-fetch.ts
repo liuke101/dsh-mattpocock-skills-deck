@@ -57,9 +57,12 @@ function sessionFail(reason: string, detail?: any): any {
 /**
  * 仓库地址按后端自己的口径拼：GitHub 与 GitLab 的网页主机名不同，不许把一种地址冒充成另一种。
  * 自建实例的域名宿主这里不知道；那种情况下会话回包里那份地址更准，调用方会优先用它。
+ * Forgejo 基本都是自建实例，这里拼不出可信域名，回空串让调用方改用会话那份，而不是假装成 github.com。
  */
 function repoUrlOf(backendId: string, refId: string): string {
-  return (backendId === 'gitlab' ? 'https://gitlab.com/' : 'https://github.com/') + refId
+  if (backendId === 'gitlab') return 'https://gitlab.com/' + refId
+  if (backendId === 'forgejo') return ''
+  return 'https://github.com/' + refId
 }
 
 /** 由宿主给的 owner/name 拼会话要的仓库坐标；refId 是各后端认的 'owner/name'。 */
