@@ -1,0 +1,9 @@
+[48;2;255;0;0m bug  49
+  Bug report
+
+[48;2;238;238;238m needs-triage  51
+  Needs triage
+
+[48;2;139;92;246m wayfinder:map  50
+  (no description)
+

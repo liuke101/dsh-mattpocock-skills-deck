@@ -428,6 +428,13 @@ console.log('── B. 档位字面量只许出现在真源文件里')
       values: ['empty'],
       why: '这里的 empty 说的是容器「一张子票都没有」的三态之一，不是 TrackerError 的档位；与老宿主档位词同形纯属巧合，只放行这一个词',
     },
+    {
+      // #1875：Forgejo 房判断「两条依赖边会不会成环」时要区分 yes/no/unknown 三态，
+      //   unknown 表示候选超过上限定不下来，不是 TrackerError 的档位；只放行这一个词。
+      file: 'src/tracker/rooms/forgejo/writes.ts',
+      values: ['unknown'],
+      why: '成环检查的三态返回值，表示这次没算完、不敢下结论；不是 TrackerError 的档位',
+    },
   ]
 
 

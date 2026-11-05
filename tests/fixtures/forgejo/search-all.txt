@@ -1,0 +1,4 @@
+3 issues
+#3: Third closed issue (by alice)
+#2: Second issue with labels (by alice)
+#1: First probe issue (by alice)

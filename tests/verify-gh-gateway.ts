@@ -79,6 +79,8 @@ const EXITS = [
   { file: 'src/tracker/rooms/gitlab/client.ts', role: 'not-github', reason: '起的是 glab（另一个后端），不是 GitHub 的出口' },
   { file: 'src/tracker/rooms/gitlab/index.ts', role: 'not-github', reason: '起的是 git（读远端地址），不是 GitHub 出站' },
   { file: 'src/tracker/rooms/gitlab/preflight.ts', role: 'not-github', reason: '起的是 glab（另一个后端的预检），不是 GitHub 的出口' },
+  { file: 'src/tracker/rooms/forgejo/client.ts', role: 'not-github', reason: '起的是 fj（Forgejo 后端），不是 GitHub 的出口' },
+  { file: 'src/tracker/rooms/forgejo/repo.ts', role: 'not-github', reason: '起的是 git（读远端地址、认实例主机），不是 GitHub 出站' },
 ]
 
 /**
